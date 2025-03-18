@@ -1,5 +1,4 @@
-﻿using QingYi.Core.FileUtility.IO;
-using QingYi.Core.Network.Download;
+﻿using QingYi.Core.Network.Download;
 
 namespace DownloadTest
 {
