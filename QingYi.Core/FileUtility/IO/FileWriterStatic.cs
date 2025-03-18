@@ -11,14 +11,10 @@ namespace QingYi.Core.FileUtility.IO
             writer.Write(data.AsSpan());
         }
 
-        public static void Write(string filePath, byte[] data)
-        {
-            using var writer = new FileWriter(filePath);
-            writer.Write(data.AsSpan());
-        }
+        public static void Write(string filePath, byte[] data) => Write(data, filePath);
 
         public static async Task WriteAsync(byte[] data, string filePath) => await Task.Run(() => Write(data, filePath));
 
-        public static async Task WriteAsync(string filePath, byte[] data) => await Task.Run(() => Write(filePath, data));
+        public static async Task WriteAsync(string filePath, byte[] data) => await Task.Run(() => Write(data, filePath));
     }
 }
