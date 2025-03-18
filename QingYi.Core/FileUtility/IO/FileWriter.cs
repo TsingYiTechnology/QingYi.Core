@@ -3,6 +3,7 @@ using System.IO;
 using System.Reflection.Emit;
 using System.Threading.Tasks;
 using System.Threading;
+using System.IO.MemoryMappedFiles;
 
 namespace QingYi.Core.FileUtility.IO
 {
@@ -18,12 +19,19 @@ namespace QingYi.Core.FileUtility.IO
         private static readonly MemoryCopier _memoryCopier = new MemoryCopier();
 
         public FileWriter(string path,
-                         int bufferSize = 81920,
-                         FileMode mode = FileMode.Create,
-                         FileAccess access = FileAccess.Write,
-                         FileShare share = FileShare.Read,
-                         FileOptions options = FileOptions.None)
-            : this(new FileStream(path, mode, access, share, bufferSize, options), bufferSize, false)
+                 int bufferSize = 81920,
+                 FileMode mode = FileMode.Create,
+                 FileAccess access = FileAccess.Write,
+                 FileShare share = FileShare.Read,
+                 FileOptions options = FileOptions.None)
+    : this(new FileStream(
+        path,
+        mode,
+        access,
+        share,
+        bufferSize,
+        options
+    ), bufferSize, false)
         {
         }
 
@@ -112,29 +120,61 @@ namespace QingYi.Core.FileUtility.IO
                 offset += copyBytes;
                 remaining -= copyBytes;
 
-                // 关键修复：动态处理剩余数据
-                if (remaining > 0)
+                // 关键修复1：修正超大块判断逻辑
+                if (remaining > 0 && remaining >= available)
                 {
-                    // 当剩余数据超过缓冲区容量时
-                    if (remaining > _bufferSize)
-                    {
-                        await FlushAsync(cancellationToken).ConfigureAwait(false);
-                        await WriteDirectAsync(
-                            data.Slice(offset, remaining),
-                            cancellationToken
-                        ).ConfigureAwait(false);
-
-                        offset += remaining; // 更新偏移量
-                        remaining = 0;      // 终止循环
-                    }
+                    await FlushAsync(cancellationToken).ConfigureAwait(false);
+                    await WriteDirectAsync(
+                        data.Slice(offset, remaining),
+                        cancellationToken
+                    ).ConfigureAwait(false);
+                    offset += remaining;
+                    remaining = 0;
                 }
             }
         }
 
-        // 改进的直接写入方法（处理部分写入）
+        // 直接写入方法
         private async ValueTask WriteDirectAsync(ReadOnlyMemory<byte> data, CancellationToken cancellationToken)
         {
-            await _fileStream.WriteAsync(data, cancellationToken).ConfigureAwait(false);
+            // 确保文件大小足够
+            long requiredLength = _fileStream.Position + data.Length;
+            if (_fileStream.Length < requiredLength)
+            {
+                _fileStream.SetLength(requiredLength);
+            }
+
+            // 使用内存映射写入
+            using (var mmFile = MemoryMappedFile.CreateFromFile(
+                _fileStream, // 直接传入FileStream对象
+                null,        // 映射名称（不需要）
+                data.Length, // 映射大小
+                MemoryMappedFileAccess.ReadWrite,
+                HandleInheritability.None,
+                false))      // 是否保留文件流打开
+            {
+                using (var accessor = mmFile.CreateViewAccessor(0, data.Length))
+                {
+                    unsafe
+                    {
+                        byte* ptr = null;
+                        accessor.SafeMemoryMappedViewHandle.AcquirePointer(ref ptr);
+                        try
+                        {
+                            // 将数据拷贝到映射内存
+                            data.Span.CopyTo(new Span<byte>(ptr, data.Length));
+                        }
+                        finally
+                        {
+                            accessor.SafeMemoryMappedViewHandle.ReleasePointer();
+                        }
+                    }
+                }
+            }
+
+            // 更新文件流位置
+            _fileStream.Position += data.Length;
+            await _fileStream.FlushAsync(cancellationToken);
         }
 
         private void WriteDirect(ReadOnlySpan<byte> data)

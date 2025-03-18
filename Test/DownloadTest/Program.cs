@@ -7,15 +7,15 @@ namespace DownloadTest
     {
         private static readonly string downloadLink = "https://www.nuget.org/api/v2/package/QingYi.Core/5.1.1";
 
-        static void Main(string[] args)
+        static async Task Main(string[] args)
         {
-            SingleThread();
+            await SingleThread();
         }
 
-        static void SingleThread()
+        static async Task SingleThread()
         {
             var data = SingleThreadDownload.Download(downloadLink);
-            FileWriterStatic.WriteAsync("single-thread.nupkg", data);
+            await FileWriterStatic.WriteAsync("single-thread.nupkg", data);
         }
     }
 }

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading.Tasks;
 
 namespace QingYi.Core.FileUtility.IO
 {
@@ -16,16 +17,8 @@ namespace QingYi.Core.FileUtility.IO
             writer.Write(data.AsSpan());
         }
 
-        public static async void WriteAsync(byte[] data, string filePath)
-        {
-            await using var writer = new FileWriter(filePath);
-            await writer.WriteAsync(data);
-        }
+        public static async Task WriteAsync(byte[] data, string filePath) => await Task.Run(() => Write(data, filePath));
 
-        public static async void WriteAsync(string filePath, byte[] data)
-        {
-            await using var writer = new FileWriter(filePath);
-            await writer.WriteAsync(data);
-        }
+        public static async Task WriteAsync(string filePath, byte[] data) => await Task.Run(() => Write(filePath, data));
     }
 }
