@@ -9,13 +9,12 @@ namespace DownloadTest
 
         static async Task Main(string[] args)
         {
-            await SingleThread();
+            SingleThread();
         }
 
-        static async Task SingleThread()
+        static void SingleThread()
         {
-            var data = SingleThreadDownload.Download(downloadLink);
-            await FileWriterStatic.WriteAsync("single-thread.nupkg", data);
+            SingleThreadDownload.Download(downloadLink, "./", "single-thread.nupkg");
         }
     }
 }

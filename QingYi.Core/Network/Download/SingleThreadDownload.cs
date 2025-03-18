@@ -13,44 +13,85 @@ namespace QingYi.Core.Network.Download
     /// </summary>
     public class SingleThreadDownload
     {
-        // 同步下载（基础版本）
-        public static byte[] Download(string url, int bufferSize = 81920)
+        public delegate void DownloadProgressHandler(long downloadedBytes, long? totalBytes);
+
+        // 新增同步保存到文件的重载
+        public static void Download(string url, string savePath, string fileName, int bufferSize = 81920, DownloadProgressHandler progressHandler = null)
+        {
+            var fullPath = Path.Combine(savePath, fileName);
+            Directory.CreateDirectory(savePath);
+
+            using var fileStream = new FileStream(fullPath, FileMode.Create, FileAccess.Write, FileShare.None);
+            Download(url, fileStream, bufferSize, progressHandler);
+        }
+
+        // 仅适用于下载到当前目录
+        public static void Download(string url, string fullPath, int bufferSize = 81920, DownloadProgressHandler progressHandler = null)
+        {
+            using var fileStream = new FileStream(fullPath, FileMode.Create, FileAccess.Write, FileShare.None);
+            Download(url, fileStream, bufferSize, progressHandler);
+        }
+
+        // 扩展原有同步方法支持进度
+        public static void Download(string url, Stream outputStream, int bufferSize = 81920, DownloadProgressHandler progressHandler = null)
         {
             using var client = new HttpClient();
             using var response = client.GetAsync(url).GetAwaiter().GetResult();
             response.EnsureSuccessStatusCode();
 
-            return ProcessSyncStream(response.Content, bufferSize);
+            ReadStreamWithProgress(
+                response.Content.ReadAsStreamAsync().GetAwaiter().GetResult(),
+                outputStream,
+                response.Content.Headers.ContentLength,
+                bufferSize,
+                progressHandler);
         }
 
-        // 同步下载（支持自定义流处理）
-        public static void Download(string url, Stream outputStream, int bufferSize = 81920)
+        // 新增异步保存到文件的重载
+        public static async Task DownloadAsync(string url, string savePath, string fileName, int bufferSize = 81920, DownloadProgressHandler progressHandler = null, CancellationToken ct = default)
         {
-            using var client = new HttpClient();
-            using var response = client.GetAsync(url).GetAwaiter().GetResult();
-            response.EnsureSuccessStatusCode();
+            var fullPath = Path.Combine(savePath, fileName);
+            Directory.CreateDirectory(savePath);
 
-            ProcessSyncStream(response.Content, outputStream, bufferSize);
+            await using var fileStream = new FileStream(
+                fullPath,
+                FileMode.Create,
+                FileAccess.Write,
+                FileShare.None,
+                bufferSize: 4096,
+                useAsync: true);
+
+            await DownloadAsync(url, fileStream, bufferSize, progressHandler, ct).ConfigureAwait(false);
         }
 
-        // 异步下载（基础版本）
-        public static async Task<byte[]> DownloadAsync(string url, int bufferSize = 81920, CancellationToken ct = default)
+        // 仅适用于下载到当前目录
+        public static async Task DownloadAsync(string url, string fullPath, int bufferSize = 81920, DownloadProgressHandler progressHandler = null, CancellationToken ct = default)
+        {
+            await using var fileStream = new FileStream(
+                fullPath,
+                FileMode.Create,
+                FileAccess.Write,
+                FileShare.None,
+                bufferSize: 4096,
+                useAsync: true);
+
+            await DownloadAsync(url, fileStream, bufferSize, progressHandler, ct).ConfigureAwait(false);
+        }
+
+        // 扩展原有异步方法支持进度
+        public static async Task DownloadAsync(string url, Stream outputStream, int bufferSize = 81920, DownloadProgressHandler progressHandler = null, CancellationToken ct = default)
         {
             using var client = new HttpClient();
             using var response = await client.GetAsync(url, ct).ConfigureAwait(false);
             response.EnsureSuccessStatusCode();
 
-            return await ProcessAsyncStream(response.Content, bufferSize, ct).ConfigureAwait(false);
-        }
-
-        // 异步下载（支持自定义流处理）
-        public static async Task DownloadAsync(string url, Stream outputStream, int bufferSize = 81920, CancellationToken ct = default)
-        {
-            using var client = new HttpClient();
-            using var response = await client.GetAsync(url, ct).ConfigureAwait(false);
-            response.EnsureSuccessStatusCode();
-
-            await ProcessAsyncStream(response.Content, outputStream, bufferSize, ct).ConfigureAwait(false);
+            await ReadStreamWithProgressAsync(
+                await response.Content.ReadAsStreamAsync().ConfigureAwait(false),
+                outputStream,
+                response.Content.Headers.ContentLength,
+                bufferSize,
+                progressHandler,
+                ct).ConfigureAwait(false);
         }
 
         private static byte[] ProcessSyncStream(HttpContent content, int bufferSize)
@@ -91,6 +132,85 @@ namespace QingYi.Core.Network.Download
             using var stream = await content.ReadAsStreamAsync().ConfigureAwait(false);
             await ReadStreamToOutputAsync(stream, outputStream, bufferSize, ct).ConfigureAwait(false);
         }
+
+        #region Progress-Enhanced Implementations
+        private static unsafe void ReadStreamWithProgress(
+            Stream input,
+            Stream output,
+            long? totalSize,
+            int bufferSize,
+            DownloadProgressHandler progressHandler)
+        {
+            byte[] buffer = ArrayPool<byte>.Shared.Rent(bufferSize);
+            long totalRead = 0;
+            int reportThreshold = CalculateReportThreshold(totalSize);
+            int nextReport = reportThreshold;
+
+            try
+            {
+                int bytesRead;
+                while ((bytesRead = input.Read(buffer, 0, buffer.Length)) > 0)
+                {
+                    fixed (byte* bufferPtr = buffer)
+                    {
+                        output.Write(new ReadOnlySpan<byte>(bufferPtr, bytesRead));
+                    }
+
+                    totalRead += bytesRead;
+                    if (totalRead >= nextReport || totalRead == totalSize)
+                    {
+                        progressHandler?.Invoke(totalRead, totalSize);
+                        nextReport += reportThreshold;
+                    }
+                }
+            }
+            finally
+            {
+                ArrayPool<byte>.Shared.Return(buffer);
+            }
+        }
+
+        private static async Task ReadStreamWithProgressAsync(
+            Stream input,
+            Stream output,
+            long? totalSize,
+            int bufferSize,
+            DownloadProgressHandler progressHandler,
+            CancellationToken ct)
+        {
+            byte[] buffer = ArrayPool<byte>.Shared.Rent(bufferSize);
+            long totalRead = 0;
+            int reportThreshold = CalculateReportThreshold(totalSize);
+            int nextReport = reportThreshold;
+
+            try
+            {
+                int bytesRead;
+                while ((bytesRead = await input.ReadAsync(buffer, 0, buffer.Length, ct).ConfigureAwait(false)) > 0)
+                {
+                    await output.WriteAsync(buffer, 0, bytesRead, ct).ConfigureAwait(false);
+                    totalRead += bytesRead;
+
+                    if (totalRead >= nextReport || totalRead == totalSize)
+                    {
+                        progressHandler?.Invoke(totalRead, totalSize);
+                        nextReport += reportThreshold;
+                    }
+                }
+            }
+            finally
+            {
+                ArrayPool<byte>.Shared.Return(buffer);
+            }
+        }
+
+        private static int CalculateReportThreshold(long? totalSize)
+        {
+            if (!totalSize.HasValue) return 1024 * 1024; // 1MB 报告间隔
+            if (totalSize < 10 * 1024 * 1024) return (int)(totalSize / 100); // 小文件按百分比
+            return (int)(totalSize / 100); // 大文件至少1%间隔
+        }
+        #endregion
 
         #region Sync Implementations
         private static unsafe byte[] ReadStreamWithKnownLength(Stream stream, long contentLength, int bufferSize)
