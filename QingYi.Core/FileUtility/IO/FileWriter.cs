@@ -7,7 +7,7 @@ using System.IO.MemoryMappedFiles;
 
 namespace QingYi.Core.FileUtility.IO
 {
-    public sealed class FileWriter : IDisposable, IAsyncDisposable
+    public sealed class FileWriter : IDisposable
     {
         private readonly FileStream _fileStream;
         private readonly byte[] _buffer;
