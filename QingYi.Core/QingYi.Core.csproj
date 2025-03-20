@@ -4,7 +4,7 @@
     <TargetFrameworks>netstandard2.1;net6.0;net7.0;net8.0;net9.0;net6.0-windows;net7.0-windows;net8.0-windows;net9.0-windows;net9.0-browser</TargetFrameworks>
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
     <Title>QingYi.Core</Title>
-    <Version>5.2.0</Version>
+    <Version>5.2.0-pre1</Version>
     <Authors>QingYi-Studio</Authors>
     <Copyright>AGPL-3.0</Copyright>
     <PackageProjectUrl>https://github.com/QingYi-Studio/QingYi.Core</PackageProjectUrl>
@@ -19,7 +19,8 @@ This project also has a lot of utility features, such as Base encoding, file inf
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
     <GenerateDocumentationFile>True</GenerateDocumentationFile>
     <ProduceReferenceAssembly>True</ProduceReferenceAssembly>
-    <PackageReleaseNotes>- Added a string extension method to Base45.</PackageReleaseNotes>
+    <PackageReleaseNotes>- Added support for high-performance file read and write.
+- Added high-performance file download function.</PackageReleaseNotes>
     <PackageLicenseFile>LICENSE</PackageLicenseFile>
     <PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
   </PropertyGroup>
