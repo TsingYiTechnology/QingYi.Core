@@ -4,16 +4,30 @@ namespace DownloadTest
 {
     internal class Program
     {
-        private static readonly string downloadLink = "https://www.nuget.org/api/v2/package/QingYi.Core/5.1.1";
+        private static readonly string downloadLink = "https://filesamples.com/samples/document/csv/sample4.csv";
 
         static async Task Main(string[] args)
         {
             SingleThread();
+            Console.WriteLine("单线程完成");
+            Thread.Sleep(250);
+
+            await MultiThread();
+            Console.WriteLine("多线程完成");
+
+            Console.ReadLine();
         }
 
-        static void SingleThread()
+        static void SingleThread() => SingleThreadDownload.Download(downloadLink, "./", "single-thread.csv");
+
+        static async Task MultiThread()
         {
-            SingleThreadDownload.Download(downloadLink, "./", "single-thread.nupkg");
+            var downloader = new MultiThreadDownload(new Uri(downloadLink), "./", "multi-thread.csv");
+
+            await downloader.StartDownloadAsync();
+
+            // 获取进度
+            //Console.WriteLine($"Download progress: {downloader.GetProgress():P}");
         }
     }
 }
