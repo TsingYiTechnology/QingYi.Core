@@ -15,7 +15,7 @@ namespace QingYi.Core.Network.Download
     {
         public delegate void DownloadProgressHandler(long downloadedBytes, long? totalBytes);
 
-        // 新增同步保存到文件的重载
+        // 同步保存到文件的重载
         public static void Download(string url, string savePath, string fileName, int bufferSize = 81920, DownloadProgressHandler progressHandler = null)
         {
             var fullPath = Path.Combine(savePath, fileName);
@@ -47,7 +47,7 @@ namespace QingYi.Core.Network.Download
                 progressHandler);
         }
 
-        // 新增异步保存到文件的重载
+        // 异步保存到文件的重载
         public static async Task DownloadAsync(string url, string savePath, string fileName, int bufferSize = 81920, DownloadProgressHandler progressHandler = null, CancellationToken ct = default)
         {
             var fullPath = Path.Combine(savePath, fileName);
