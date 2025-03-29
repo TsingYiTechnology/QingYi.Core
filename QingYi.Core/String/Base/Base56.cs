@@ -173,4 +173,45 @@ namespace QingYi.Core.String.Base
             return count;
         }
     }
+
+    /// <summary>
+    /// Static string extension of Base56 codec library.<br />
+    /// Base56 编解码库的静态字符串拓展。
+    /// </summary>
+    public static class Base56Extension
+    {
+        /// <summary>
+        /// Base56 encoding of the string.<br />
+        /// 将字符串进行 Base56 编码。
+        /// </summary>
+        /// <param name="input">The string to be converted.<br />需要转换的字符串</param>
+        /// <param name="encoding">The encoding of the string.<br />字符串的编码方式</param>
+        /// <returns>The encoded string.<br />被编码的字符串</returns>
+        public static string EncodeBase56(this string input, StringEncoding encoding = StringEncoding.UTF8) => Base56.EncodeString(input, encoding);
+
+        /// <summary>
+        /// Base56 decoding of the string.<br />
+        /// 将字符串进行 Base56 解码。
+        /// </summary>
+        /// <param name="input">The string to be converted.<br />需要转换的字符串</param>
+        /// <param name="encoding">The encoding of the string.<br />字符串的编码方式</param>
+        /// <returns>The decoded string.<br />被解码的字符串</returns>
+        public static string DecodeBase56(this string input, StringEncoding encoding = StringEncoding.UTF8) => Base56.DecodeString(input, encoding);
+
+        /// <summary>
+        /// Base56 encoding of the bytes.<br />
+        /// 将字节数组进行 Base56 编码。
+        /// </summary>
+        /// <param name="input">The bytes to be converted.<br />需要转换的字节数组</param>
+        /// <returns>The encoded string.<br />被编码的字符串</returns>
+        public static string EncodeBase56(this byte[] input) => Base56.Encode(input);
+
+        /// <summary>
+        /// Base56 decoding of the bytes.<br />
+        /// 将字节数组进行 Base56 解码。
+        /// </summary>
+        /// <param name="input">The string to be converted.<br />需要转换的字符串</param>
+        /// <returns>The decoded bytes.<br />被解码的字节数组</returns>
+        public static byte[] DecodeBase56(this string input) => Base56.Decode(input);
+    }
 }
