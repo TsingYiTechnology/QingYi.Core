@@ -1,4 +1,5 @@
-﻿using System;
+﻿// Copyright (c) 2025 Tsing Yi Studio - Grey-Wind
+using System;
 
 namespace QingYi.Core.String.Base
 {
