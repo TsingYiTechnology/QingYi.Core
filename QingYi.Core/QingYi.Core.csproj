@@ -14,12 +14,13 @@
 This project also has a lot of utility features, such as Base encoding, file information retrieval, file/folder compression, Shell, etc.</Description>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageIcon>icon.png</PackageIcon>
-    <PackageTags>QingYi;Base;Base2;Base32;Base36;Base45;Base64;Encode;Shell;Folder;File;Compress;Network;Regedit;Power</PackageTags>
+    <PackageTags>QingYi;Base;Base2;Base32;Base36;Base45;Base56;Base58;Base64;Encode;Shell;Folder;File;Compress;Network;Regedit;Power</PackageTags>
     <NuGetAudit>False</NuGetAudit>
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
     <GenerateDocumentationFile>True</GenerateDocumentationFile>
     <ProduceReferenceAssembly>True</ProduceReferenceAssembly>
-    <PackageReleaseNotes>- Add Base56 support.</PackageReleaseNotes>
+    <PackageReleaseNotes>- Add Base56 support.
+- Add Base58 support.</PackageReleaseNotes>
     <PackageLicenseFile>LICENSE</PackageLicenseFile>
     <PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
   </PropertyGroup>

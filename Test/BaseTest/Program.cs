@@ -216,6 +216,22 @@ namespace BaseTest
             #endregion
 
             #region Base58
+            // 设置前景颜色
+            Console.ForegroundColor = ConsoleColor.Magenta;
+
+            Console.Write("·Base58 ");
+
+            // 设置前景颜色
+            Console.ForegroundColor = ConsoleColor.Green;
+            Console.Write("Encode: ");
+            Console.Write($"{Base58.Encode(testText, StringEncoding.UTF8)}  ");
+            Console.Write("Decode: ");
+            Console.Write($"{Base58.Decode(Base58.Encode(testText, StringEncoding.UTF8), StringEncoding.UTF8)}\n");
+
+            // 恢复为默认颜色
+            Console.ResetColor();
+
+            GC.Collect();
             #endregion
 
             #region Base62
@@ -259,6 +275,9 @@ namespace BaseTest
             #endregion
 
             #region Base128
+            #endregion
+
+            #region BaseXml
             #endregion
 
             GC.Collect();
