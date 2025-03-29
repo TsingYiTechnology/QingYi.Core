@@ -10,7 +10,6 @@ namespace QingYi.Core
         {
             if (input?.Trim() == "ialwaysloveyou")
             {
-                Console.Clear();
                 Console.ForegroundColor = ConsoleColor.Cyan;
 
                 Console.WriteLine("\n恭喜解锁彩蛋！");

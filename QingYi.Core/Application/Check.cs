@@ -1,7 +1,7 @@
-﻿using System;
+﻿#if !BROWSER
+using System;
 using System.Diagnostics;
 
-#if !BROWSER
 namespace QingYi.Core.Application
 {
     /// <summary>
