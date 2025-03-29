@@ -178,7 +178,7 @@ namespace QingYi.Core.String.Base
     }
 
     /// <summary>
-    /// Static string extension of Base36 codec library.<br />
+    /// Static string extension of Base45 codec library.<br />
     /// Base45 编解码库的静态字符串拓展。
     /// </summary>
     public static class Base45Extension
