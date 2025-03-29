@@ -3,6 +3,10 @@ using System.Text;
 
 namespace QingYi.Core.String.Base
 {
+    /// <summary>
+    /// Base56 codec library.<br />
+    /// Base56 编解码库。
+    /// </summary>
     public unsafe class Base56
     {
         private const string Base56Chars = "23456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
@@ -24,12 +28,26 @@ namespace QingYi.Core.String.Base
         /// <returns>The base56-encoded character set.<br />Base56 编码的字符集</returns>
         public override string ToString() => Base56Chars;
 
+        /// <summary>
+        /// Base56 encoding of the string.<br />
+        /// 将字符串进行 Base56 编码。
+        /// </summary>
+        /// <param name="input">The string to be converted.<br />需要转换的字符串</param>
+        /// <param name="encoding">The encoding of the string.<br />字符串的编码方式</param>
+        /// <returns>The encoded string.<br />被编码的字符串</returns>
         public static string EncodeString(string input, StringEncoding encoding = StringEncoding.UTF8)
         {
             var bytes = GetEncoding(encoding).GetBytes(input);
             return Encode(bytes);
         }
 
+        /// <summary>
+        /// Base56 decoding of the string.<br />
+        /// 将字符串进行 Base56 解码。
+        /// </summary>
+        /// <param name="base56String">The string to be converted.<br />需要转换的字符串</param>
+        /// <param name="encoding">The encoding of the string.<br />字符串的编码方式</param>
+        /// <returns>The decoded string.<br />被解码的字符串</returns>
         public static string DecodeString(string base56String, StringEncoding encoding = StringEncoding.UTF8)
         {
             var bytes = Decode(base56String);
@@ -55,6 +73,12 @@ namespace QingYi.Core.String.Base
             };
         }
 
+        /// <summary>
+        /// Base56 encoding of the bytes.<br />
+        /// 将字节数组进行 Base56 编码。
+        /// </summary>
+        /// <param name="input">The bytes to be converted.<br />需要转换的字节数组</param>
+        /// <returns>The encoded string.<br />被编码的字符串</returns>
         public static unsafe string Encode(byte[] input)
         {
             if (input == null) throw new ArgumentNullException(nameof(input));
@@ -109,6 +133,12 @@ namespace QingYi.Core.String.Base
             }
         }
 
+        /// <summary>
+        /// Base56 decoding of the bytes.<br />
+        /// 将字节数组进行 Base56 解码。
+        /// </summary>
+        /// <param name="input">The string to be converted.<br />需要转换的字符串</param>
+        /// <returns>The decoded bytes.<br />被解码的字节数组</returns>
         public static unsafe byte[] Decode(string input)
         {
             if (input == null) throw new ArgumentNullException(nameof(input));
