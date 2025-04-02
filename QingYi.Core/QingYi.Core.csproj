@@ -4,7 +4,7 @@
     <TargetFrameworks>netstandard2.1;net6.0;net7.0;net8.0;net9.0;net6.0-windows;net7.0-windows;net8.0-windows;net9.0-windows;net9.0-browser</TargetFrameworks>
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
     <Title>QingYi.Core</Title>
-    <Version>5.2.0-pre2</Version>
+    <Version>5.2.0-pre2-internalversion2</Version>
     <Authors>QingYi-Studio</Authors>
     <Copyright>AGPL-3.0</Copyright>
     <PackageProjectUrl>https://github.com/QingYi-Studio/QingYi.Core</PackageProjectUrl>
@@ -14,15 +14,20 @@
 This project also has a lot of utility features, such as Base encoding, file information retrieval, file/folder compression, Shell, etc.</Description>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageIcon>icon.png</PackageIcon>
-    <PackageTags>QingYi;Base;Base2;Base32;Base36;Base45;Base56;Base58;Base64;Encode;Shell;Folder;File;Compress;Network;Regedit;Power</PackageTags>
+    <PackageTags>QingYi;Base;Base2;Base16;Base32;Base36;Base45;Base56;Base58;Base64;Encode;Shell;Folder;File;Compress;Network;Regedit;Power</PackageTags>
     <NuGetAudit>False</NuGetAudit>
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
     <GenerateDocumentationFile>True</GenerateDocumentationFile>
     <ProduceReferenceAssembly>True</ProduceReferenceAssembly>
     <PackageReleaseNotes>- Add Base56 support.
-- Add Base58 support.</PackageReleaseNotes>
+- Add Base58 support.
+- Fixed Base2 static conversion method error.</PackageReleaseNotes>
     <PackageLicenseFile>LICENSE</PackageLicenseFile>
     <PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
+    <PackAsTool>False</PackAsTool>
+    <SignAssembly>False</SignAssembly>
+    <IncludeSymbols>True</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|netstandard2.1|AnyCPU'">
@@ -94,6 +99,14 @@ This project also has a lot of utility features, such as Base encoding, file inf
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net9.0-windows|AnyCPU'">
+    <FileAlignment>1024</FileAlignment>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net9.0-browser|AnyCPU'">
+    <FileAlignment>1024</FileAlignment>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net9.0-browser|AnyCPU'">
     <FileAlignment>1024</FileAlignment>
   </PropertyGroup>
 
