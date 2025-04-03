@@ -66,9 +66,9 @@ namespace QingYi.Core.String.Base
 #if NET6_0_OR_GREATER
             StringEncoding.Latin1 => Encoding.Latin1,
 #endif
-#pragma warning disable 0618
+#pragma warning disable 0618, SYSLIB0001
                 StringEncoding.UTF7 => Encoding.UTF7,
-#pragma warning restore 0618
+#pragma warning restore 0618, SYSLIB0001
                 _ => throw new ArgumentOutOfRangeException(nameof(encoding))
             };
         }
