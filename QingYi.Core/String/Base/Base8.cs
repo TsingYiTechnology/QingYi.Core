@@ -88,7 +88,7 @@ namespace QingYi.Core.String.Base
         /// <param name="input">The string to be converted.<br />需要转换的字符串</param>
         /// <param name="encoding">The encoding of the string.<br />字符串的编码方式</param>
         /// <returns>The encoded string.<br />被编码的字符串</returns>
-        public static string EncodeString(string input, StringEncoding encoding)
+        public static string EncodeString(string input, StringEncoding encoding = StringEncoding.UTF8)
         {
             byte[] bytes = StringEncodingHelper.GetBytes(input, encoding);
             return Encode(bytes);
@@ -101,7 +101,7 @@ namespace QingYi.Core.String.Base
         /// <param name="base8">The string to be converted.<br />需要转换的字符串</param>
         /// <param name="encoding">The encoding of the string.<br />字符串的编码方式</param>
         /// <returns>The decoded string.<br />被解码的字符串</returns>
-        public static string DecodeString(string base8, StringEncoding encoding)
+        public static string DecodeString(string base8, StringEncoding encoding = StringEncoding.UTF8)
         {
             byte[] bytes = Decode(base8);
             return StringEncodingHelper.GetString(bytes, encoding);

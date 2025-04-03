@@ -19,7 +19,9 @@ This project also has a lot of utility features, such as Base encoding, file inf
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
     <GenerateDocumentationFile>True</GenerateDocumentationFile>
     <ProduceReferenceAssembly>True</ProduceReferenceAssembly>
-    <PackageReleaseNotes>- Add high precision timer</PackageReleaseNotes>
+    <PackageReleaseNotes>- Add high precision timer
+- Add base 8 codec
+- Add base 16 codec</PackageReleaseNotes>
     <PackageLicenseFile>LICENSE</PackageLicenseFile>
     <PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
     <PackAsTool>False</PackAsTool>
