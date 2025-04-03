@@ -19,9 +19,7 @@ This project also has a lot of utility features, such as Base encoding, file inf
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
     <GenerateDocumentationFile>True</GenerateDocumentationFile>
     <ProduceReferenceAssembly>True</ProduceReferenceAssembly>
-    <PackageReleaseNotes>- Add Base56 support.
-- Add Base58 support.
-- Fixed Base2 static conversion method error.</PackageReleaseNotes>
+    <PackageReleaseNotes>- </PackageReleaseNotes>
     <PackageLicenseFile>LICENSE</PackageLicenseFile>
     <PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
     <PackAsTool>False</PackAsTool>
