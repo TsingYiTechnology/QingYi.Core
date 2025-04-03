@@ -32,7 +32,7 @@ NuGet\Install-Package QingYi.Core
 
 ## Feedback 
 
-For bug reporting/requests you can report issues on [github](https://github.com/QingYi-Studio/QingYi.Co're/issue) if required.
+For bug reporting/requests you can report issues on [github](https://github.com/QingYi-Studio/QingYi.Core/issue) if required.
 
 ## Finally
 
