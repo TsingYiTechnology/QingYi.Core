@@ -1,158 +1,223 @@
 ﻿using System;
-using System.Collections.Generic;
+using System.Buffers;
+using System.Runtime.CompilerServices;
 using System.Text;
 
 namespace QingYi.Core.String.Base
 {
     public class Base62
     {
-        private const string CharSet = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
-        private static readonly Dictionary<char, int> CharMap = CreateCharMap();
-        private static readonly Encoding[] Encodings = CreateEncodingsTable();
+        private const string Characters = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+        private static readonly Encoding s_latin1Encoding = GetLatin1Encoding();
 
-        private static Dictionary<char, int> CreateCharMap()
+        // 修复1：正确计算输出长度
+        private static int GetEncodedLength(int inputLength)
         {
-            var map = new Dictionary<char, int>(62);
-            for (int i = 0; i < CharSet.Length; i++)
-                map[CharSet[i]] = i;
-            return map;
+            int bits = inputLength * 8;
+            return (bits + 5) / 6; // 向上取整到最近的整数
         }
 
-        /// <summary>
-        /// Gets the base62-encoded character set.<br />
-        /// 获取 Base62 编码的字符集。
-        /// </summary>
-        /// <returns>The base62-encoded character set.<br />Base62 编码的字符集</returns>
-        public override string ToString() => CharSet;
-
-        private static Encoding[] CreateEncodingsTable()
-        {
-            var encodings = new Encoding[Enum.GetValues(typeof(StringEncoding)).Length];
-            encodings[(int)StringEncoding.UTF8] = Encoding.UTF8;
-            encodings[(int)StringEncoding.UTF16LE] = new UnicodeEncoding(false, false);
-            encodings[(int)StringEncoding.UTF16BE] = new UnicodeEncoding(true, false);
-            encodings[(int)StringEncoding.ASCII] = Encoding.ASCII;
-            encodings[(int)StringEncoding.UTF32] = Encoding.UTF32;
 #if NET6_0_OR_GREATER
-        encodings[(int)StringEncoding.Latin1] = Encoding.Latin1;
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static Encoding GetLatin1Encoding() => Encoding.Latin1;
+#else
+        private static Encoding GetLatin1Encoding() => Encoding.GetEncoding(28591);
 #endif
-#pragma warning disable 0618, SYSLIB0001
-            encodings[(int)StringEncoding.UTF7] = Encoding.UTF7;
-#pragma warning restore 0618, SYSLIB0001
-            return encodings;
+
+        public static string Encode(string input, StringEncoding encoding = StringEncoding.UTF8)
+        {
+            if (string.IsNullOrEmpty(input)) return string.Empty;
+
+            byte[]? rentedBuffer = null;
+            try
+            {
+                var byteCount = GetMaxByteCount(input, encoding);
+                rentedBuffer = ArrayPool<byte>.Shared.Rent(byteCount);
+                var bytes = rentedBuffer.AsSpan();
+                var written = GetBytes(input, bytes, encoding);
+                return Encode(bytes.Slice(0, written));
+            }
+            finally
+            {
+                if (rentedBuffer != null)
+                    ArrayPool<byte>.Shared.Return(rentedBuffer);
+            }
         }
 
-        public static unsafe string Encode(string input, StringEncoding encoding)
+        private static unsafe int GetBytes(string input, Span<byte> destination, StringEncoding encoding)
         {
-            if (input == null) throw new ArgumentNullException(nameof(input));
-            if (input.Length == 0) return string.Empty;
-
-            Encoding enc = Encodings[(int)encoding] ?? throw new NotSupportedException();
-            int byteCount = enc.GetByteCount(input);
-            byte[] buffer = new byte[byteCount];
-
             fixed (char* pInput = input)
-            fixed (byte* pBuffer = buffer)
+            fixed (byte* pDest = destination)
             {
-                enc.GetBytes(pInput, input.Length, pBuffer, byteCount);
+                return encoding switch
+                {
+                    StringEncoding.UTF8 => Encoding.UTF8.GetBytes(pInput, input.Length, pDest, destination.Length),
+                    StringEncoding.UTF16LE => Encoding.Unicode.GetBytes(pInput, input.Length, pDest, destination.Length),
+                    StringEncoding.UTF16BE => Encoding.BigEndianUnicode.GetBytes(pInput, input.Length, pDest, destination.Length),
+                    StringEncoding.ASCII => Encoding.ASCII.GetBytes(pInput, input.Length, pDest, destination.Length),
+                    StringEncoding.UTF32 => Encoding.UTF32.GetBytes(pInput, input.Length, pDest, destination.Length),
+#if NET6_0_OR_GREATER
+                StringEncoding.Latin1 => s_latin1Encoding.GetBytes(pInput, input.Length, pDest, destination.Length),
+#endif
+                    _ => throw new NotSupportedException("Unsupported encoding")
+                };
             }
-
-            return Encode(buffer);
         }
 
-        public static unsafe string Encode(byte[] data)
+        public static unsafe string Encode(ReadOnlySpan<byte> input)
         {
-            if (data == null) throw new ArgumentNullException(nameof(data));
-            if (data.Length == 0) return string.Empty;
+            if (input.IsEmpty) return string.Empty;
 
-            // 修正输出长度计算
-            int outputLength = (int)Math.Ceiling(data.Length * 8 / 5.954196310386875); // log2(62)
-            char[] output = new char[outputLength];
-            int outputPos = outputLength;
+            int outputLength = GetEncodedLength(input.Length);
+            char[]? rentedArray = null;
 
-            ulong buffer = 0;
-            int bits = 0;
-
-            fixed (byte* pData = data)
-            fixed (char* pOutput = output)
+            try
             {
-                for (int i = 0; i < data.Length; i++)
-                {
-                    buffer = (buffer << 8) | pData[i];
-                    bits += 8;
+                rentedArray = ArrayPool<char>.Shared.Rent(outputLength);
+                Span<char> output = rentedArray;
 
-                    while (bits >= 6)
+                fixed (byte* pInput = input)
+                fixed (char* pOutput = output)
+                {
+                    byte* currentInput = pInput;
+                    char* currentOutput = pOutput;
+                    int remaining = input.Length;
+                    int outputIndex = 0;
+
+                    // 修复2：改进的位处理逻辑
+                    ulong buffer = 0;
+                    int bitsInBuffer = 0;
+
+                    while (remaining > 0 || bitsInBuffer > 0)
                     {
-                        bits -= 6;
-                        ulong temp = buffer >> bits;
-                        pOutput[--outputPos] = CharSet[(int)(temp % 62)];
-                        buffer &= (1UL << bits) - 1;
-                    }
-                }
+                        while (bitsInBuffer < 24 && remaining > 0)
+                        {
+                            buffer = (buffer << 8) | *currentInput++;
+                            bitsInBuffer += 8;
+                            remaining--;
+                        }
 
-                if (bits > 0)
-                {
-                    pOutput[--outputPos] = CharSet[(int)((buffer << (6 - bits)) % 62)];
+                        int take = Math.Min(6, bitsInBuffer);
+                        if (take == 0) break;
+
+                        int index = (int)(((uint)(buffer >> (bitsInBuffer - take))) & ((1 << take) - 1));
+                        index <<= (6 - take);
+                        *currentOutput++ = Characters[index];
+                        outputIndex++;
+
+                        bitsInBuffer -= take;
+                    }
+
+                    return new string(pOutput, 0, outputIndex);
                 }
             }
-
-            return new string(output, outputPos, outputLength - outputPos);
+            finally
+            {
+                if (rentedArray != null)
+                    ArrayPool<char>.Shared.Return(rentedArray);
+            }
         }
 
-        public static unsafe string Decode(string base62, StringEncoding encoding)
+        public static string Decode(string base62, StringEncoding encoding = StringEncoding.UTF8)
         {
-            byte[] bytes = DecodeToBytes(base62);
-            Encoding enc = Encodings[(int)encoding] ?? throw new NotSupportedException();
+            if (string.IsNullOrEmpty(base62)) return string.Empty;
 
+            byte[]? rentedBuffer = null;
+            try
+            {
+                var maxByteCount = GetMaxByteCount(base62);
+                rentedBuffer = ArrayPool<byte>.Shared.Rent(maxByteCount);
+                var bytes = rentedBuffer.AsSpan();
+                var written = DecodeInternal(base62, bytes);
+                return GetString(bytes.Slice(0, written), encoding);
+            }
+            finally
+            {
+                if (rentedBuffer != null)
+                    ArrayPool<byte>.Shared.Return(rentedBuffer);
+            }
+        }
+
+        private static unsafe string GetString(ReadOnlySpan<byte> bytes, StringEncoding encoding)
+        {
             fixed (byte* pBytes = bytes)
             {
-                return enc.GetString(pBytes, bytes.Length);
+                return encoding switch
+                {
+                    StringEncoding.UTF8 => Encoding.UTF8.GetString(pBytes, bytes.Length),
+                    StringEncoding.UTF16LE => Encoding.Unicode.GetString(pBytes, bytes.Length),
+                    StringEncoding.UTF16BE => Encoding.BigEndianUnicode.GetString(pBytes, bytes.Length),
+                    StringEncoding.ASCII => Encoding.ASCII.GetString(pBytes, bytes.Length),
+                    StringEncoding.UTF32 => Encoding.UTF32.GetString(pBytes, bytes.Length),
+#if NET6_0_OR_GREATER
+                StringEncoding.Latin1 => s_latin1Encoding.GetString(pBytes, bytes.Length),
+#endif
+                    _ => throw new NotSupportedException("Unsupported encoding")
+                };
             }
         }
 
-        public static unsafe byte[] DecodeToBytes(string base62)
+        public static unsafe int DecodeInternal(string base62, Span<byte> output)
         {
-            if (base62 == null) throw new ArgumentNullException(nameof(base62));
-            if (base62.Length == 0) return Array.Empty<byte>();
-
-            // 修正输出长度计算
-            int outputLength = (int)Math.Ceiling(base62.Length * 5.954196310386875 / 8);
-            byte[] output = new byte[outputLength];
-            int outputPos = outputLength;
-
-            ulong buffer = 0;
-            int bits = 0;
-
             fixed (char* pInput = base62)
             fixed (byte* pOutput = output)
             {
+                char* currentChar = pInput;
+                byte* currentByte = pOutput;
+                int outputIndex = 0;
+                ulong buffer = 0;
+                int bits = 0;
+
                 for (int i = 0; i < base62.Length; i++)
                 {
-                    if (!CharMap.TryGetValue(pInput[i], out int value))
-                        throw new ArgumentException($"Invalid Base62 character: {pInput[i]}");
+                    char c = *currentChar++;
+                    int value = Characters.IndexOf(c);
+                    if (value < 0) throw new ArgumentException("Invalid Base62 character: " + c);
 
-                    buffer = buffer * 62 + (uint)value;
+                    // 修复3：正确的位操作
+                    buffer = (buffer << 6) | (ulong)value;
                     bits += 6;
 
                     while (bits >= 8)
                     {
                         bits -= 8;
-                        pOutput[--outputPos] = (byte)(buffer >> bits);
+                        *currentByte++ = (byte)(buffer >> bits);
+                        outputIndex++;
                         buffer &= (1UL << bits) - 1;
                     }
                 }
 
-                // 处理剩余位（当输入长度不是完整块时）
-                if (bits > 0 && outputPos > 0)
+                // 处理剩余位（如果需要）
+                if (bits > 0)
                 {
-                    pOutput[--outputPos] = (byte)(buffer << (8 - bits));
+                    *currentByte++ = (byte)(buffer << (8 - bits));
+                    outputIndex++;
                 }
-            }
 
-            if (outputPos == 0) return output;
-            byte[] result = new byte[outputLength - outputPos];
-            Buffer.BlockCopy(output, outputPos, result, 0, result.Length);
-            return result;
+                return outputIndex;
+            }
         }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static int GetMaxByteCount(int charCount, StringEncoding encoding) => encoding switch
+        {
+            StringEncoding.UTF8 => Encoding.UTF8.GetMaxByteCount(charCount),
+            StringEncoding.UTF16LE => Encoding.Unicode.GetMaxByteCount(charCount),
+            StringEncoding.UTF16BE => Encoding.BigEndianUnicode.GetMaxByteCount(charCount),
+            StringEncoding.ASCII => Encoding.ASCII.GetMaxByteCount(charCount),
+            StringEncoding.UTF32 => Encoding.UTF32.GetMaxByteCount(charCount),
+#if NET6_0_OR_GREATER
+        StringEncoding.Latin1 => charCount,
+#endif
+            _ => throw new NotSupportedException("Unsupported encoding")
+        };
+
+        private static int GetMaxByteCount(string input, StringEncoding encoding)
+            => GetMaxByteCount(input.Length, encoding);
+
+        private static int GetMaxByteCount(string base62)
+            => (int)Math.Floor(base62.Length * 6 / 8.0);
+
+        public override string ToString() => Characters;
     }
 }

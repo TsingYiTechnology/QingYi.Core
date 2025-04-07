@@ -291,9 +291,9 @@ namespace BaseTest
             // 设置前景颜色
             Console.ForegroundColor = ConsoleColor.Green;
             Console.Write("Encode: ");
-            Console.Write($"{Base62.Encode(testText, StringEncoding.UTF8)}  ");
+            Console.Write($"{Base62.Encode(testText)}  ");
             Console.Write("Decode: ");
-            Console.Write($"{Base62.Decode(Base62.Encode(testText, StringEncoding.UTF8), StringEncoding.UTF8)}\n");
+            Console.Write($"{Base62.Decode(Base62.Encode(testText))}\n");
 
             // 恢复为默认颜色
             Console.ResetColor();

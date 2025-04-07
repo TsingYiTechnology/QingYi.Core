@@ -20,10 +20,7 @@ This project also has a lot of utility features, such as Base encoding, file inf
     <GenerateDocumentationFile>True</GenerateDocumentationFile>
     <ProduceReferenceAssembly>True</ProduceReferenceAssembly>
     <PackageReleaseNotes>- Base 62 codec
-- Base 85 codec
-- Base 91 codec
-- Base 92 codec
-- Base 94 codec</PackageReleaseNotes>
+- Base 85 codec</PackageReleaseNotes>
     <PackageLicenseFile>LICENSE</PackageLicenseFile>
     <PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
     <PackAsTool>False</PackAsTool>
