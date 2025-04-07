@@ -65,11 +65,12 @@ namespace QingYi.Core.String.Base
             if (data == null) throw new ArgumentNullException(nameof(data));
             if (data.Length == 0) return string.Empty;
 
-            int outputLength = (int)Math.Ceiling(data.Length * 8 / Math.Log(62, 2));
+            // 修正输出长度计算
+            int outputLength = (int)Math.Ceiling(data.Length * 8 / 5.954196310386875); // log2(62)
             char[] output = new char[outputLength];
-            int outputIndex = outputLength;
+            int outputPos = outputLength;
 
-            uint carry = 0;
+            ulong buffer = 0;
             int bits = 0;
 
             fixed (byte* pData = data)
@@ -77,25 +78,25 @@ namespace QingYi.Core.String.Base
             {
                 for (int i = 0; i < data.Length; i++)
                 {
-                    carry = (carry << 8) | pData[i];
+                    buffer = (buffer << 8) | pData[i];
                     bits += 8;
 
                     while (bits >= 6)
                     {
                         bits -= 6;
-                        uint temp = carry >> bits;
-                        pOutput[--outputIndex] = CharSet[(int)(temp % 62)];
-                        carry &= (1U << bits) - 1;
+                        ulong temp = buffer >> bits;
+                        pOutput[--outputPos] = CharSet[(int)(temp % 62)];
+                        buffer &= (1UL << bits) - 1;
                     }
                 }
 
                 if (bits > 0)
                 {
-                    pOutput[--outputIndex] = CharSet[(int)((carry << (6 - bits)) % 62)];
+                    pOutput[--outputPos] = CharSet[(int)((buffer << (6 - bits)) % 62)];
                 }
             }
 
-            return new string(output, outputIndex, outputLength - outputIndex);
+            return new string(output, outputPos, outputLength - outputPos);
         }
 
         public static unsafe string Decode(string base62, StringEncoding encoding)
@@ -114,11 +115,12 @@ namespace QingYi.Core.String.Base
             if (base62 == null) throw new ArgumentNullException(nameof(base62));
             if (base62.Length == 0) return Array.Empty<byte>();
 
-            int outputLength = (int)Math.Ceiling(base62.Length * Math.Log(62, 2) / 8);
+            // 修正输出长度计算
+            int outputLength = (int)Math.Ceiling(base62.Length * 5.954196310386875 / 8);
             byte[] output = new byte[outputLength];
-            int outputIndex = outputLength;
+            int outputPos = outputLength;
 
-            uint carry = 0;
+            ulong buffer = 0;
             int bits = 0;
 
             fixed (char* pInput = base62)
@@ -129,26 +131,27 @@ namespace QingYi.Core.String.Base
                     if (!CharMap.TryGetValue(pInput[i], out int value))
                         throw new ArgumentException($"Invalid Base62 character: {pInput[i]}");
 
-                    carry = carry * 62 + (uint)value;
+                    buffer = buffer * 62 + (uint)value;
                     bits += 6;
 
                     while (bits >= 8)
                     {
                         bits -= 8;
-                        pOutput[--outputIndex] = (byte)(carry >> bits);
-                        carry &= (1U << bits) - 1;
+                        pOutput[--outputPos] = (byte)(buffer >> bits);
+                        buffer &= (1UL << bits) - 1;
                     }
                 }
 
-                if (bits > 0)
+                // 处理剩余位（当输入长度不是完整块时）
+                if (bits > 0 && outputPos > 0)
                 {
-                    pOutput[--outputIndex] = (byte)(carry << (8 - bits));
+                    pOutput[--outputPos] = (byte)(buffer << (8 - bits));
                 }
             }
 
-            if (outputIndex == 0) return output;
-            byte[] result = new byte[outputLength - outputIndex];
-            Buffer.BlockCopy(output, outputIndex, result, 0, result.Length);
+            if (outputPos == 0) return output;
+            byte[] result = new byte[outputLength - outputPos];
+            Buffer.BlockCopy(output, outputPos, result, 0, result.Length);
             return result;
         }
     }
