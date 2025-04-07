@@ -346,7 +346,7 @@ namespace BaseTest
 
             GC.Collect();
 
-            Console.ReadLine();
+            Console.ReadKey();
         }
     }
 }
