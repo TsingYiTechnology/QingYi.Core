@@ -116,7 +116,13 @@ namespace QingYi.Core.String.Base
             }
         }
 
-        private static string BytesToBase64(byte[] input)
+        /// <summary>
+        /// 将字节数组进行 Base 64 编码。<br />
+        /// Base 64 encoding of the bytes.
+        /// </summary>
+        /// <param name="input">输入字节数组<br />Input bytes</param>
+        /// <returns>被编码的字符串<br />Encoded string</returns>
+        public static string BytesToBase64(byte[] input)
         {
             int inputLength = input.Length;
             int outputLength = (inputLength + 2) / 3 * 4;
@@ -168,7 +174,13 @@ namespace QingYi.Core.String.Base
             return new string(output);
         }
 
-        private static byte[] Base64ToBytes(string base64)
+        /// <summary>
+        /// 将字符串进行 Base 64 解码。<br />
+        /// Base 64 decoding of the string.
+        /// </summary>
+        /// <param name="base64">输入文本<br />Input text</param>
+        /// <returns>被解码的字节数组<br />Decoded bytes</returns>
+        public static byte[] Base64ToBytes(string base64)
         {
             int inputLength = base64.Length;
             if (inputLength == 0) return Array.Empty<byte>();
@@ -255,14 +267,16 @@ namespace QingYi.Core.String.Base
         /// </summary>
         /// <param name="text">输入文本<br />Input text</param>
         /// <returns>被编码的字符串<br />Encoded string</returns>
-        public static string Encode(string text)
-        {
-            byte[] bytes = Encoding.UTF8.GetBytes(text);
-            return EncodeToBytes(bytes);
-        }
+        public static string Encode(string text) => BytesToBase64(Encoding.UTF8.GetBytes(text));
 
         // Base64编码（字节数组→Base64字符串）
-        private static unsafe string EncodeToBytes(byte[] bytes)
+        /// <summary>
+        /// 将字节数组进行 Base 64 编码。<br />
+        /// Base 64 encoding of the bytes.
+        /// </summary>
+        /// <param name="bytes">输入字节数组<br />Input bytes</param>
+        /// <returns>被编码的字符串<br />Encoded string</returns>
+        public static unsafe string BytesToBase64(byte[] bytes)
         {
             int inputLength = bytes.Length;
             int outputLength = (inputLength + 2) / 3 * 4;
@@ -312,14 +326,16 @@ namespace QingYi.Core.String.Base
         /// </summary>
         /// <param name="base64Text">输入文本<br />Input text</param>
         /// <returns>被解码的字符串<br />Decoded string</returns>
-        public static string Decode(string base64Text)
-        {
-            byte[] bytes = DecodeToBytes(base64Text);
-            return Encoding.UTF8.GetString(bytes);
-        }
+        public static string Decode(string base64Text) => Encoding.UTF8.GetString(Base64ToBytes(base64Text));
 
         // Base64解码（Base64字符串→字节数组）
-        private static unsafe byte[] DecodeToBytes(string base64Text)
+        /// <summary>
+        /// 将字符串进行 Base 64 解码。<br />
+        /// Base 64 decoding of the string.
+        /// </summary>
+        /// <param name="base64Text">输入文本<br />Input text</param>
+        /// <returns>被解码的字节数组<br />Decoded bytes</returns>
+        public static unsafe byte[] Base64ToBytes(string base64Text)
         {
             int inputLength = base64Text.Length;
             char[] cleaned = new char[inputLength];
@@ -440,5 +456,20 @@ namespace QingYi.Core.String.Base
         /// <returns>被解码的字符串<br />Decoded string</returns>
         public static string DecodeBase64(this string input) => Base64.Decode(input);
 #endif
+        /// <summary>
+        /// 将字节数组进行 Base 64 编码。<br />
+        /// Base 64 encoding of the bytes.
+        /// </summary>
+        /// <param name="bytes">输入字节数组<br />Input bytes</param>
+        /// <returns>被编码的字符串<br />Encoded string</returns>
+        public static string EncodeBytesToBase64(this byte[] bytes) => Base64.BytesToBase64(bytes);
+
+        /// <summary>
+        /// 将字符串进行 Base 64 解码。<br />
+        /// Base 64 decoding of the string.
+        /// </summary>
+        /// <param name="base64">输入文本<br />Input text</param>
+        /// <returns>被解码的字节数组<br />Decoded bytes</returns>
+        public static byte[] DecodeBase64ToBytes(this string base64) => Base64.Base64ToBytes(base64);
     }
 }
