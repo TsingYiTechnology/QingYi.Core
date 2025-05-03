@@ -5,8 +5,13 @@ using System.Text;
 
 namespace QingYi.Core.String.Base
 {
+    /// <summary>
+    /// Base62 codec library.<br />
+    /// Base62 编解码库。
+    /// </summary>
     public class Base62
     {
+#nullable enable
         private const string Characters = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
         private static readonly Encoding s_latin1Encoding = GetLatin1Encoding();
 
@@ -18,17 +23,25 @@ namespace QingYi.Core.String.Base
         }
 
 #if NET6_0_OR_GREATER
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static Encoding GetLatin1Encoding() => Encoding.Latin1;
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static Encoding GetLatin1Encoding() => Encoding.Latin1;
 #else
         private static Encoding GetLatin1Encoding() => Encoding.GetEncoding(28591);
 #endif
 
+        /// <summary>
+        /// Base62 encoding of the string.<br />
+        /// 将字符串进行Base62编码。
+        /// </summary>
+        /// <param name="input">The string to be converted.<br />需要转换的字符串</param>
+        /// <param name="encoding">The encoding of the string.<br />字符串的编码方式</param>
+        /// <returns>The encoded string.<br />被编码的字符串</returns>
         public static string Encode(string input, StringEncoding encoding = StringEncoding.UTF8)
         {
             if (string.IsNullOrEmpty(input)) return string.Empty;
 
             byte[]? rentedBuffer = null;
+
             try
             {
                 var byteCount = GetMaxByteCount(input, encoding);
@@ -64,6 +77,12 @@ namespace QingYi.Core.String.Base
             }
         }
 
+        /// <summary>
+        /// Base62 encoding of the bytes.<br />
+        /// 将字节数组进行Base62编码。
+        /// </summary>
+        /// <param name="input">The bytes to be converted.<br />需要转换的字节数组</param>
+        /// <returns>The encoded string.<br />被编码的字符串</returns>
         public static unsafe string Encode(ReadOnlySpan<byte> input)
         {
             if (input.IsEmpty) return string.Empty;
@@ -118,6 +137,13 @@ namespace QingYi.Core.String.Base
             }
         }
 
+        /// <summary>
+        /// Base62 decoding of the string.<br />
+        /// 将字符串进行Base62解码。
+        /// </summary>
+        /// <param name="base62">The string to be converted.<br />需要转换的字符串</param>
+        /// <param name="encoding">The encoding of the string.<br />字符串的编码方式</param>
+        /// <returns>The decoded string.<br />被解码的字符串</returns>
         public static string Decode(string base62, StringEncoding encoding = StringEncoding.UTF8)
         {
             if (string.IsNullOrEmpty(base62)) return string.Empty;
@@ -129,7 +155,7 @@ namespace QingYi.Core.String.Base
                 rentedBuffer = ArrayPool<byte>.Shared.Rent(maxByteCount);
                 var bytes = rentedBuffer.AsSpan();
                 var written = DecodeInternal(base62, bytes);
-                return GetString(bytes.Slice(0, written), encoding);
+                return GetString(bytes[..written], encoding);
             }
             finally
             {
@@ -137,6 +163,40 @@ namespace QingYi.Core.String.Base
                     ArrayPool<byte>.Shared.Return(rentedBuffer);
             }
         }
+
+        /// <summary>
+        /// Base62 decoding of the string.<br />
+        /// 将字符串进行Base62解码。
+        /// </summary>
+        /// <param name="base62">The string to be converted.<br />需要转换的字符串</param>
+        /// <returns>The decoded string.<br />被解码的字符串</returns>
+        public static Span<byte> DecodeToSpanByte(string base62)
+        {
+            if (string.IsNullOrEmpty(base62)) return Span<byte>.Empty;
+
+            byte[]? rentedBuffer = null;
+            try
+            {
+                var maxByteCount = GetMaxByteCount(base62);
+                rentedBuffer = ArrayPool<byte>.Shared.Rent(maxByteCount);
+                var bytes = rentedBuffer.AsSpan();
+                var written = DecodeInternal(base62, bytes);
+                return bytes[..written];
+            }
+            finally
+            {
+                if (rentedBuffer != null)
+                    ArrayPool<byte>.Shared.Return(rentedBuffer);
+            }
+        }
+
+        /// <summary>
+        /// Base62 decoding of the string.<br />
+        /// 将字符串进行Base62解码。
+        /// </summary>
+        /// <param name="base62">The string to be converted.<br />需要转换的字符串</param>
+        /// <returns>The decoded string.<br />被解码的字符串</returns>
+        public static byte[] Decode(string base62) => DecodeToSpanByte(base62).ToArray();
 
         private static unsafe string GetString(ReadOnlySpan<byte> bytes, StringEncoding encoding)
         {
@@ -157,7 +217,7 @@ namespace QingYi.Core.String.Base
             }
         }
 
-        public static unsafe int DecodeInternal(string base62, Span<byte> output)
+        private static unsafe int DecodeInternal(string base62, Span<byte> output)
         {
             fixed (char* pInput = base62)
             fixed (byte* pOutput = output)
@@ -175,7 +235,9 @@ namespace QingYi.Core.String.Base
                     if (value < 0) throw new ArgumentException("Invalid Base62 character: " + c);
 
                     // 修复3：正确的位操作
+#pragma warning disable 0675
                     buffer = (buffer << 6) | (ulong)value;
+#pragma warning restore 0675
                     bits += 6;
 
                     while (bits >= 8)
@@ -207,7 +269,7 @@ namespace QingYi.Core.String.Base
             StringEncoding.ASCII => Encoding.ASCII.GetMaxByteCount(charCount),
             StringEncoding.UTF32 => Encoding.UTF32.GetMaxByteCount(charCount),
 #if NET6_0_OR_GREATER
-        StringEncoding.Latin1 => charCount,
+            StringEncoding.Latin1 => charCount,
 #endif
             _ => throw new NotSupportedException("Unsupported encoding")
         };
@@ -218,6 +280,61 @@ namespace QingYi.Core.String.Base
         private static int GetMaxByteCount(string base62)
             => (int)Math.Floor(base62.Length * 6 / 8.0);
 
+        /// <summary>
+        /// Gets the base62-encoded character set.<br />
+        /// 获取 Base62 编码的字符集。
+        /// </summary>
+        /// <returns>The base62-encoded character set.<br />Base62 编码的字符集</returns>
         public override string ToString() => Characters;
+#nullable restore
+    }
+
+    /// <summary>
+    /// Static string extension of Base62 codec library.<br />
+    /// Base62 编解码库的静态字符串拓展。
+    /// </summary>
+    public static class Base62Extension
+    {
+        /// <summary>
+        /// Base62 encoding of the string.<br />
+        /// 将字符串进行Base62编码。
+        /// </summary>
+        /// <param name="input">The string to be converted.<br />需要转换的字符串</param>
+        /// <param name="encoding">The encoding of the string.<br />字符串的编码方式</param>
+        /// <returns>The encoded string.<br />被编码的字符串</returns>
+        public static string EncodeBase62(string input, StringEncoding encoding = StringEncoding.UTF8) => Base62.Encode(input, encoding);
+
+        /// <summary>
+        /// Base62 encoding of the bytes.<br />
+        /// 将字节数组进行Base62编码。
+        /// </summary>
+        /// <param name="input">The bytes to be converted.<br />需要转换的字节数组</param>
+        /// <returns>The encoded string.<br />被编码的字符串</returns>
+        public static unsafe string EncodeBase62(ReadOnlySpan<byte> input) => Base62.Encode(input);
+
+        /// <summary>
+        /// Base62 decoding of the string.<br />
+        /// 将字符串进行Base62解码。
+        /// </summary>
+        /// <param name="base62">The string to be converted.<br />需要转换的字符串</param>
+        /// <param name="encoding">The encoding of the string.<br />字符串的编码方式</param>
+        /// <returns>The decoded string.<br />被解码的字符串</returns>
+        public static string DecodeBase62(string base62, StringEncoding encoding = StringEncoding.UTF8) => Base62.Decode(base62, encoding);
+
+        /// <summary>
+        /// Base62 decoding of the string.<br />
+        /// 将字符串进行Base62解码。
+        /// </summary>
+        /// <param name="base62">The string to be converted.<br />需要转换的字符串</param>
+        /// <returns>The decoded string.<br />被解码的字符串</returns>
+        public static byte[] DecodeBase62(string base62) => Base62.Decode(base62);
+
+        /// <summary>
+        /// Base62 decoding of the string.<br />
+        /// 将字符串进行Base62解码。
+        /// </summary>
+        /// <param name="base62">The string to be converted.<br />需要转换的字符串</param>
+        /// <returns>The decoded string.<br />被解码的字符串</returns>
+        public static Span<byte> DecodeBase62ToSpanByte(string base62) => Base62.DecodeToSpanByte(base62);
     }
 }
