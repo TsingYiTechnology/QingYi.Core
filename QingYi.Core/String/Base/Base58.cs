@@ -61,7 +61,7 @@ namespace QingYi.Core.String.Base
             return GetString(bytes, encoding);
         }
 
-        private static unsafe string Encode(byte[] input)
+        internal static unsafe string Encode(byte[] input)
         {
             if (input.Length == 0) return string.Empty;
 
@@ -108,7 +108,7 @@ namespace QingYi.Core.String.Base
             }
         }
 
-        private static unsafe byte[] DecodeToBytes(string input)
+        internal static unsafe byte[] DecodeToBytes(string input)
         {
             if (input.Length == 0) return Array.Empty<byte>();
 
@@ -186,5 +186,46 @@ namespace QingYi.Core.String.Base
         private static byte[] GetBytes(string input, StringEncoding encoding) => GetEncoding(encoding).GetBytes(input);
 
         private static string GetString(byte[] bytes, StringEncoding encoding) => GetEncoding(encoding).GetString(bytes);
+    }
+
+    /// <summary>
+    /// Static string extension of Base62 codec library.<br />
+    /// Base58 编解码库的静态字符串拓展。
+    /// </summary>
+    public static class Base58Extension
+    {
+        /// <summary>
+        /// Base58 encoding of the string.<br />
+        /// 将字符串进行Base58编码。
+        /// </summary>
+        /// <param name="input">The string to be converted.<br />需要转换的字符串</param>
+        /// <param name="encoding">The encoding of the string.<br />字符串的编码方式</param>
+        /// <returns>The encoded string.<br />被编码的字符串</returns>
+        public static string Encode(this string input, StringEncoding encoding = StringEncoding.UTF8) => Base58.Encode(input, encoding);
+
+        /// <summary>
+        /// Base58 decoding of the string.<br />
+        /// 将字符串进行Base58解码。
+        /// </summary>
+        /// <param name="input">The string to be converted.<br />需要转换的字符串</param>
+        /// <param name="encoding">The encoding of the string.<br />字符串的编码方式</param>
+        /// <returns>The decoded string.<br />被解码的字符串</returns>
+        public static string Decode(this string input, StringEncoding encoding = StringEncoding.UTF8) => Base58.Decode(input, encoding);
+
+        /// <summary>
+        /// Base58 encoding of the bytes.<br />
+        /// 将字节数组进行Base58编码。
+        /// </summary>
+        /// <param name="input">The bytes to be converted.<br />需要转换的字节数组</param>
+        /// <returns>The encoded string.<br />被编码的字符串</returns>
+        public static string Encode(this byte[] input) => Base58.Encode(input);
+
+        /// <summary>
+        /// Base58 decoding of the string.<br />
+        /// 将字符串进行Base58解码。
+        /// </summary>
+        /// <param name="input">The string to be converted.<br />需要转换的字符串</param>
+        /// <returns>The decoded bytes.<br />被解码的字节数组</returns>
+        public static byte[] Decode(this string input) => Base58.DecodeToBytes(input);
     }
 }
