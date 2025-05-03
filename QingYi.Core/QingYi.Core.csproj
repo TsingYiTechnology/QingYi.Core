@@ -14,12 +14,13 @@
 This project also has a lot of utility features, such as Base encoding, file information retrieval, file/folder compression, Shell, etc.</Description>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageIcon>icon.png</PackageIcon>
-    <PackageTags>QingYi;Base;Base2;Base16;Base32;Base36;Base45;Base56;Base58;Base64;Encode;Shell;Folder;File;Compress;Network;Regedit;Power</PackageTags>
+    <PackageTags>QingYi;Base;Base2;Base10;Base16;Base32;Base36;Base45;Base56;Base58;Base62;Base64;Encode;Decode;Codec;Shell;Folder;File;Compress;Regedit;Power</PackageTags>
     <NuGetAudit>False</NuGetAudit>
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
     <GenerateDocumentationFile>True</GenerateDocumentationFile>
     <ProduceReferenceAssembly>True</ProduceReferenceAssembly>
-    <PackageReleaseNotes>- Optmize Base 62 codec.</PackageReleaseNotes>
+    <PackageReleaseNotes>- Optmize Base 62 codec.
+- Add Base 58 static method.</PackageReleaseNotes>
     <PackageLicenseFile>LICENSE</PackageLicenseFile>
     <PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
     <PackAsTool>False</PackAsTool>
