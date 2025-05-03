@@ -28,6 +28,8 @@ This project also has a lot of utility features, such as Base encoding, file inf
     <SignAssembly>False</SignAssembly>
     <IncludeSymbols>True</IncludeSymbols>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+    <AssemblyVersion>5.2.0.6</AssemblyVersion>
+    <FileVersion>5.2.0.6</FileVersion>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|netstandard2.1|AnyCPU'">
