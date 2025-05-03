@@ -20,8 +20,7 @@ This project also has a lot of utility features, such as Base encoding, file inf
     <GenerateDocumentationFile>True</GenerateDocumentationFile>
     <ProduceReferenceAssembly>True</ProduceReferenceAssembly>
     <PackageReleaseNotes>- Base 62 codec.
-- Base 85 codec.
-- Add more method about Base 64.
+- Add more method about Base 2, Base 10 and Base 64.
 - Remove Network(This will be added to the new library in the future.)</PackageReleaseNotes>
     <PackageLicenseFile>LICENSE</PackageLicenseFile>
     <PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
