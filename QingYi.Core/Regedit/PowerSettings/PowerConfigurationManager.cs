@@ -11,7 +11,7 @@ namespace QingYi.Core.Regedit.PowerSettings
     /// Power planning related class.<br />
     /// 电源计划相关的类。
     /// </summary>
-    public class PowerConfigurationManager
+    class PowerConfigurationManager
     {
         /// <summary>
         /// Starts a process with administrator privileges.<br />

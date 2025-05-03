@@ -20,7 +20,8 @@ This project also has a lot of utility features, such as Base encoding, file inf
     <GenerateDocumentationFile>True</GenerateDocumentationFile>
     <ProduceReferenceAssembly>True</ProduceReferenceAssembly>
     <PackageReleaseNotes>- Optmize Base 62 codec.
-- Add Base 58 static method.</PackageReleaseNotes>
+- Add Base 58 static method.
+- Temporarily hide the functions related to the registry.</PackageReleaseNotes>
     <PackageLicenseFile>LICENSE</PackageLicenseFile>
     <PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
     <PackAsTool>False</PackAsTool>

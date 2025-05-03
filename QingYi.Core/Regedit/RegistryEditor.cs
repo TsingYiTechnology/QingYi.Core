@@ -14,7 +14,7 @@ namespace QingYi.Core.Regedit
     /// <summary>
     /// <strong>Windows Only! Not tested!</strong>
     /// </summary>
-    public static class RegistryEditor
+    static class RegistryEditor
     {
         #region 基本操作
         /// <summary>
