@@ -194,7 +194,7 @@ namespace QingYi.Core.String.Base
         /// <param name="base16String">The string to be converted.<br />需要转换的字符串</param>
         /// <param name="encoding">The encoding of the string.<br />字符串的编码方式</param>
         /// <returns>The decoded string.<br />被解码的字符串</returns>
-        public static string DecodeBase16(string base16String, StringEncoding encoding = StringEncoding.UTF8) => Base16.Decode(base16String, encoding);
+        public static string DecodeBase16(this string base16String, StringEncoding encoding = StringEncoding.UTF8) => Base16.Decode(base16String, encoding);
 
         /// <summary>
         /// Base16 decoding of the string.<br />
@@ -202,6 +202,6 @@ namespace QingYi.Core.String.Base
         /// </summary>
         /// <param name="base16String">The string to be converted.<br />需要转换的字符串</param>
         /// <returns>The decoded bytes.<br />被解码的字节数组</returns>
-        public static byte[] DecodeBase16(string base16String) => Base16.Decode(base16String);
+        public static byte[] DecodeBase16(this string base16String) => Base16.Decode(base16String);
     }
 }
