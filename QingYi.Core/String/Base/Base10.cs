@@ -53,7 +53,7 @@ namespace QingYi.Core.String.Base
             return GetEncoding(encoding).GetString(bytes);
         }
 
-        private static string EncodeBytes(byte[] bytes)
+        internal static string EncodeBytes(byte[] bytes)
         {
             if (bytes == null || bytes.Length == 0) return string.Empty;
 
@@ -81,7 +81,7 @@ namespace QingYi.Core.String.Base
             return new string(result);
         }
 
-        private static byte[] DecodeToBytes(string base10String)
+        internal static byte[] DecodeToBytes(string base10String)
         {
             if (base10String.Length % 3 != 0)
                 throw new ArgumentException("Invalid Base10 string length", nameof(base10String));
@@ -164,5 +164,21 @@ namespace QingYi.Core.String.Base
         /// <param name="encoding">The encoding of the string.<br />字符串的编码方式</param>
         /// <returns>The decoded string.<br />被解码的字符串</returns>
         public static string DecodeBase10(this string input, StringEncoding encoding = StringEncoding.UTF8) => Base10.Decode(input, encoding);
+
+        /// <summary>
+        /// Base10 encoding of the string.<br />
+        /// 将字符串进行 Base10 编码。
+        /// </summary>
+        /// <param name="bytes">The bytes to be converted.<br />需要转换的字节数组</param>
+        /// <returns>The encoded string.<br />被编码的字符串</returns>
+        public static string EncodeBase10(this byte[] bytes) => Base10.EncodeBytes(bytes);
+
+        /// <summary>
+        /// Base10 decoding of the string.<br />
+        /// 将字符串进行 Base10 解码。
+        /// </summary>
+        /// <param name="base10">The string to be converted.<br />需要转换的字符串</param>
+        /// <returns>The decoded bytes.<br />被解码的字节数组</returns>
+        public static byte[] DecodeBase10(this string base10) => Base10.DecodeToBytes(base10);
     }
 }
