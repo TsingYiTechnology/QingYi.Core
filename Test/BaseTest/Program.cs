@@ -293,7 +293,7 @@ namespace BaseTest
             Console.Write("Encode: ");
             Console.Write($"{Base62.Encode(testText)}  ");
             Console.Write("Decode: ");
-            Console.Write($"{Base62.Decode(Base62.Encode(testText, StringEncoding.UTF8))}\n");
+            Console.Write($"{Base62.Decode(Base62.Encode(testText), StringEncoding.UTF8)}\n");
 
             // 恢复为默认颜色
             Console.ResetColor();
