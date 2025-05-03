@@ -155,7 +155,7 @@ namespace QingYi.Core.String.Base
             }
         }
 
-        private static unsafe string BytesToBase2(byte[] bytes)
+        internal static unsafe string BytesToBase2(byte[] bytes)
         {
             int byteCount = bytes.Length;
             char[] buffer = new char[byteCount * 8];
@@ -178,7 +178,7 @@ namespace QingYi.Core.String.Base
             return new string(buffer);
         }
 
-        private static unsafe byte[] Base2ToBytes(string base2)
+        internal static unsafe byte[] Base2ToBytes(string base2)
         {
             if (base2.Length % 8 != 0)
                 throw new ArgumentException("Invalid Base2 string length");
@@ -254,5 +254,21 @@ namespace QingYi.Core.String.Base
         /// <param name="isBigEndian">启用大端<br />Enable big endian</param>
         /// <returns>被解码的字符串<br />Decoded string</returns>
         public static string DecodeBase2(this string input, bool isBigEndian = false) => Base2.Decode(input, isBigEndian);
+
+        /// <summary>
+        /// 将字符串编码为 Base 2，默认为小端。<br />
+        /// Encodes the string as Base 2, which defaults to a small endian.
+        /// </summary>
+        /// <param name="bytes">输入字节数组<br />Input bytes</param>
+        /// <returns>被编码的字符串<br />Encoded string</returns>
+        public static string EncodeBase2(this byte[] bytes) => Base2.BytesToBase2(bytes);
+
+        /// <summary>
+        /// 将字符串编码为 Base 2，默认为小端。<br />
+        /// Encodes the string as Base 2, which defaults to a small endian.
+        /// </summary>
+        /// <param name="base2">输入文本<br />Input text</param>
+        /// <returns>被解码的字节数组<br />Decoded bytes</returns>
+        public static byte[] DecodeBase2(this string base2) => Base2.Base2ToBytes(base2);
     }
 }
