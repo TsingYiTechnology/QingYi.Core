@@ -1,4 +1,4 @@
-﻿using QingYi.Core.String.Base;
+using QingYi.Core.String.Base;
 
 namespace BaseTest
 {
