@@ -30,9 +30,17 @@ Package Manager
 NuGet\Install-Package QingYi.Core
 ```
 
-## Feedback 
+Package Reference
 
-For bug reporting/requests you can report issues on [github](https://github.com/QingYi-Studio/QingYi.Core/issue) if required.
+Need specific the verison, 5.1.1 is the latest release version.
+
+```xml
+<PackageReference Include="QingYi.Core" Version="5.1.1" />
+```
+
+## Feedback
+
+For bug reporting/requests/new feature you can report issues on [github](https://github.com/QingYi-Studio/QingYi.Core/issue) if required.
 
 ## Finally
 
