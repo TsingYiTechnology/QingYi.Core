@@ -2,10 +2,12 @@
 name: Bug report
 about: Create a report to help us improve
 title: ''
-labels: ''
+labels: 'bug'
 assignees: ''
 
 ---
+
+## Bug info
 
 **Describe the bug**
 A clear and concise description of what the bug is.
@@ -22,6 +24,8 @@ A clear and concise description of what you expected to happen.
 **Screenshots**
 If applicable, add screenshots to help explain your problem.
 
+## The system
+
 **Desktop (please complete the following information):**
  - OS: [e.g.Windows]
  - Browser [e.g. chrome, safari] (We may not be able to solve the problem.)
@@ -32,6 +36,8 @@ If applicable, add screenshots to help explain your problem.
  - OS: [e.g. iOS18]
  - Browser [e.g. stock browser, safari] (We may not be able to solve the problem.)
  - Version [e.g. 5.1.1]
+
+## More
 
 **Additional context**
 Add any other context about the problem here.
