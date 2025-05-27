@@ -149,6 +149,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
+		<None Remove="FileUtility\IO\FileWriter_CN.md" />
 		<None Remove="icon.png" />
 		<None Remove="readme.md" />
 		<None Remove="Shell\How-To-Use.md" />
@@ -156,6 +157,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
+		<Content Include="FileUtility\IO\FileWriter_CN.md" />
 		<Content Include="icon.png">
 			<Pack>True</Pack>
 			<PackagePath>\</PackagePath>
@@ -177,6 +179,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
+		<Folder Include="Compression\" />
 		<Folder Include="EnvironmentVariable\User\" />
 		<Folder Include="EnvironmentVariable\System\" />
 		<Folder Include="FileUtility\UserProfile\AppData\" />
