@@ -8,6 +8,7 @@ namespace QingYi.Core.FileUtility.IO
     using System.Threading.Tasks;
     using System.Threading;
     using System.IO.MemoryMappedFiles;
+
     /// <summary>
     /// Provides high-performance buffered file writing with configurable buffering strategies.
     /// </summary>
@@ -378,6 +379,240 @@ namespace QingYi.Core.FileUtility.IO
                 il.Emit(OpCodes.Ret);
 
                 Copy = (CopyMethod)dynamicMethod.CreateDelegate(typeof(CopyMethod));
+            }
+        }
+    }
+#elif NETSTANDARD2_0
+
+    using System;
+    using System.IO;
+    using System.Threading.Tasks;
+    using System.Threading;
+    using System.IO.MemoryMappedFiles;
+    using System.Runtime.InteropServices;
+
+    public sealed class FileWriter : IDisposable
+    {
+        private readonly FileStream _fileStream;
+        private readonly byte[] _buffer;
+        private int _bufferPosition;
+        private readonly int _bufferSize;
+        private readonly bool _leaveOpen;
+
+        // 使用 Buffer.MemoryCopy 替代 IL 优化的拷贝
+        private static readonly MemoryCopier _memoryCopier = new MemoryCopier();
+
+        public FileWriter(string path,
+            int bufferSize = 81920,
+            FileMode mode = FileMode.Create,
+            FileAccess access = FileAccess.Write,
+            FileShare share = FileShare.Read,
+            FileOptions options = FileOptions.None)
+            : this(new FileStream(
+                path,
+                mode,
+                access,
+                share,
+                bufferSize,
+                options
+            ), bufferSize, false)
+        {
+        }
+
+        public FileWriter(FileStream stream, int bufferSize = 81920, bool leaveOpen = false)
+        {
+            _fileStream = stream ?? throw new ArgumentNullException(nameof(stream));
+            _bufferSize = bufferSize;
+            _buffer = new byte[bufferSize];
+            _bufferPosition = 0;
+            _leaveOpen = leaveOpen;
+        }
+
+        public void Write(byte[] data, int offset, int count)
+        {
+            if (data == null || count == 0) return;
+
+            int remaining = count;
+            int currentOffset = offset;
+
+            while (remaining > 0)
+            {
+                int available = _bufferSize - _bufferPosition;
+                if (available == 0)
+                {
+                    Flush();
+                    available = _bufferSize;
+                }
+
+                int copyBytes = Math.Min(available, remaining);
+
+                unsafe
+                {
+                    fixed (byte* src = &data[currentOffset])
+                    fixed (byte* dest = &_buffer[_bufferPosition])
+                    {
+                        _memoryCopier.Copy(
+                            dest: dest,
+                            src: src,
+                            byteCount: copyBytes
+                        );
+                    }
+                }
+
+                _bufferPosition += copyBytes;
+                currentOffset += copyBytes;
+                remaining -= copyBytes;
+
+                if (remaining > _bufferSize)
+                {
+                    Flush();
+                    WriteDirect(data, currentOffset, remaining);
+                    return;
+                }
+            }
+        }
+
+        public async Task WriteAsync(byte[] data, int offset, int count, CancellationToken cancellationToken = default)
+        {
+            if (data == null || count == 0) return;
+
+            int remaining = count;
+            int currentOffset = offset;
+
+            while (remaining > 0)
+            {
+                int available = _bufferSize - _bufferPosition;
+                if (available == 0)
+                {
+                    await FlushAsync(cancellationToken).ConfigureAwait(false);
+                    available = _bufferSize;
+                }
+
+                int copyBytes = Math.Min(available, remaining);
+
+                unsafe
+                {
+                    fixed (byte* src = &data[currentOffset])
+                    fixed (byte* dest = &_buffer[_bufferPosition])
+                    {
+                        _memoryCopier.Copy(
+                            dest: dest,
+                            src: src,
+                            byteCount: copyBytes
+                        );
+                    }
+                }
+
+                _bufferPosition += copyBytes;
+                currentOffset += copyBytes;
+                remaining -= copyBytes;
+
+                if (remaining > 0 && remaining >= available)
+                {
+                    await FlushAsync(cancellationToken).ConfigureAwait(false);
+                    await WriteDirectAsync(
+                        data,
+                        currentOffset,
+                        remaining,
+                        cancellationToken
+                    ).ConfigureAwait(false);
+                    currentOffset += remaining;
+                    remaining = 0;
+                }
+            }
+        }
+
+        private async Task WriteDirectAsync(byte[] data, int offset, int count, CancellationToken cancellationToken)
+        {
+            long requiredLength = _fileStream.Position + count;
+            if (_fileStream.Length < requiredLength)
+            {
+                _fileStream.SetLength(requiredLength);
+            }
+
+            using (var mmFile = MemoryMappedFile.CreateFromFile(
+                _fileStream,
+                null,
+                count,
+                MemoryMappedFileAccess.ReadWrite,
+                HandleInheritability.None,
+                false))
+            {
+                using (var accessor = mmFile.CreateViewAccessor(0, count))
+                {
+                    unsafe
+                    {
+                        byte* ptr = null;
+                        accessor.SafeMemoryMappedViewHandle.AcquirePointer(ref ptr);
+                        try
+                        {
+                            Marshal.Copy(data, offset, (IntPtr)ptr, count);
+                        }
+                        finally
+                        {
+                            accessor.SafeMemoryMappedViewHandle.ReleasePointer();
+                        }
+                    }
+                }
+            }
+
+            _fileStream.Position += count;
+            await _fileStream.FlushAsync(cancellationToken).ConfigureAwait(false);
+        }
+
+        private void WriteDirect(byte[] data, int offset, int count)
+        {
+            _fileStream.Write(data, offset, count);
+        }
+
+        public void Flush()
+        {
+            if (_bufferPosition > 0)
+            {
+                _fileStream.Write(_buffer, 0, _bufferPosition);
+                _bufferPosition = 0;
+            }
+        }
+
+        public async Task FlushAsync(CancellationToken cancellationToken = default)
+        {
+            if (_bufferPosition > 0)
+            {
+                await _fileStream.WriteAsync(_buffer, 0, _bufferPosition, cancellationToken)
+                    .ConfigureAwait(false);
+                _bufferPosition = 0;
+            }
+        }
+
+        public void Dispose()
+        {
+            Flush();
+            if (!_leaveOpen)
+            {
+                _fileStream.Dispose();
+            }
+        }
+
+        public async Task DisposeAsync()
+        {
+            await FlushAsync().ConfigureAwait(false);
+            if (!_leaveOpen)
+            {
+                _fileStream.Dispose();
+            }
+        }
+
+        // 替代方案：使用 Buffer.MemoryCopy
+        private sealed class MemoryCopier
+        {
+            public unsafe void Copy(byte* dest, byte* src, int byteCount)
+            {
+                Buffer.MemoryCopy(
+                    source: src,
+                    destination: dest,
+                    destinationSizeInBytes: byteCount,
+                    sourceBytesToCopy: byteCount
+                );
             }
         }
     }
