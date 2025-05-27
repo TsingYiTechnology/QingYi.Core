@@ -69,33 +69,70 @@ namespace QingYi.Core.String.Base
 
         private static byte[] GetBytes(string input, StringEncoding encoding)
         {
-            return encoding switch
+            Encoding encoder;
+            switch (encoding)
             {
-                StringEncoding.UTF8 => Encoding.UTF8.GetBytes(input),
-                StringEncoding.UTF16LE => Encoding.Unicode.GetBytes(input),
-                StringEncoding.UTF16BE => Encoding.BigEndianUnicode.GetBytes(input),
-                StringEncoding.UTF32 => Encoding.UTF32.GetBytes(input),
-                StringEncoding.UTF7 => Encoding.UTF7.GetBytes(input),
+                case StringEncoding.UTF8:
+                    encoder = Encoding.UTF8;
+                    break;
+                case StringEncoding.UTF16LE:
+                    encoder = Encoding.Unicode;
+                    break;
+                case StringEncoding.UTF16BE:
+                    encoder = Encoding.BigEndianUnicode;
+                    break;
+                case StringEncoding.UTF32:
+                    encoder = Encoding.UTF32;
+                    break;
+                case StringEncoding.UTF7:
+                    encoder = Encoding.UTF7;
+                    break;
 #if NET6_0_OR_GREATER
-                StringEncoding.Latin1 => Encoding.Latin1.GetBytes(input),
+                case StringEncoding.Latin1:
+                    encoder = Encoding.Latin1;
+                    break;
 #endif
-                StringEncoding.ASCII => Encoding.ASCII.GetBytes(input),
-                _ => throw new ArgumentOutOfRangeException(nameof(encoding))
-            };
+                case StringEncoding.ASCII:
+                    encoder = Encoding.ASCII;
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(encoding));
+            }
+            return encoder.GetBytes(input);
         }
 
         private static string GetString(byte[] bytes, StringEncoding encoding)
         {
-            return encoding switch
+            Encoding decoder;
+            switch (encoding)
             {
-                StringEncoding.UTF8 => Encoding.UTF8.GetString(bytes),
-                StringEncoding.UTF16LE => Encoding.Unicode.GetString(bytes),
-                StringEncoding.UTF16BE => Encoding.BigEndianUnicode.GetString(bytes),
-                StringEncoding.UTF32 => Encoding.UTF32.GetString(bytes),
-                StringEncoding.UTF7 => Encoding.UTF7.GetString(bytes),
-                StringEncoding.ASCII => Encoding.ASCII.GetString(bytes),
-                _ => throw new ArgumentOutOfRangeException(nameof(encoding))
-            };
+                case StringEncoding.UTF8:
+                    decoder = Encoding.UTF8;
+                    break;
+                case StringEncoding.UTF16LE:
+                    decoder = Encoding.Unicode;
+                    break;
+                case StringEncoding.UTF16BE:
+                    decoder = Encoding.BigEndianUnicode;
+                    break;
+                case StringEncoding.ASCII:
+                    decoder = Encoding.ASCII;
+                    break;
+                case StringEncoding.UTF32:
+                    decoder = Encoding.UTF32;
+                    break;
+#if NET6_0_OR_GREATER
+                case StringEncoding.Latin1:
+                    decoder = Encoding.Latin1;
+                    break;
+#endif
+                case StringEncoding.UTF7:
+                    decoder = Encoding.UTF7;
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(encoding));
+            }
+            return decoder.GetString(bytes);
         }
 
         private static string EncodeToString(byte[] bytes)

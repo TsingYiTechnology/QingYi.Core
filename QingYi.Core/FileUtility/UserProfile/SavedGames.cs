@@ -64,8 +64,10 @@ namespace QingYi.Core.FileUtility.UserProfile
                 using (FileStream fs = File.Create(newFilePath))
                 {
                     // 使用 StreamWriter 写入内容
-                    using StreamWriter writer = new StreamWriter(fs);
-                    writer.Write(content);
+                    using (StreamWriter writer = new StreamWriter(fs))
+                    {
+                        writer.Write(content);
+                    }
                 }
                 return newFilePath;
             }

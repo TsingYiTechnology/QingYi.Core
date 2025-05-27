@@ -111,54 +111,74 @@ namespace QingYi.Core.String.Base
         {
             public static byte[] GetBytes(string s, StringEncoding encoding)
             {
-                return encoding switch
+                Encoding encoder;
+                switch (encoding)
                 {
-                    StringEncoding.UTF8 => Encoding.UTF8.GetBytes(s),
-                    StringEncoding.UTF16LE => Encoding.Unicode.GetBytes(s),
-                    StringEncoding.UTF16BE => Encoding.BigEndianUnicode.GetBytes(s),
-                    StringEncoding.ASCII => Encoding.ASCII.GetBytes(s),
-                    StringEncoding.UTF32 => Encoding.UTF32.GetBytes(s),
-#if NET6_0_OR_GREATER
-                    StringEncoding.Latin1 => Encoding.Latin1.GetBytes(s),
-#endif
+                    case StringEncoding.UTF8:
+                        encoder = Encoding.UTF8;
+                        break;
+                    case StringEncoding.UTF16LE:
+                        encoder = Encoding.Unicode;
+                        break;
+                    case StringEncoding.UTF16BE:
+                        encoder = Encoding.BigEndianUnicode;
+                        break;
+                    case StringEncoding.UTF32:
+                        encoder = Encoding.UTF32;
+                        break;
 #pragma warning disable CS0618, SYSLIB0001
-                    StringEncoding.UTF7 => GetUTF7Bytes(s),
+                    case StringEncoding.UTF7:
+                        encoder = Encoding.UTF7;
+                        break;
 #pragma warning restore CS0618, SYSLIB0001
-                    _ => throw new NotSupportedException($"Encoding {encoding} is not supported")
-                };
+#if NET6_0_OR_GREATER
+                case StringEncoding.Latin1:
+                    encoder = Encoding.Latin1;
+                    break;
+#endif
+                    case StringEncoding.ASCII:
+                        encoder = Encoding.ASCII;
+                        break;
+                    default:
+                        throw new ArgumentOutOfRangeException(nameof(encoding));
+                }
+                return encoder.GetBytes(s);
             }
 
             public static string GetString(byte[] bytes, StringEncoding encoding)
             {
-                return encoding switch
+                Encoding decoder;
+                switch (encoding)
                 {
-                    StringEncoding.UTF8 => Encoding.UTF8.GetString(bytes),
-                    StringEncoding.UTF16LE => Encoding.Unicode.GetString(bytes),
-                    StringEncoding.UTF16BE => Encoding.BigEndianUnicode.GetString(bytes),
-                    StringEncoding.ASCII => Encoding.ASCII.GetString(bytes),
-                    StringEncoding.UTF32 => Encoding.UTF32.GetString(bytes),
+                    case StringEncoding.UTF8:
+                        decoder = Encoding.UTF8;
+                        break;
+                    case StringEncoding.UTF16LE:
+                        decoder = Encoding.Unicode;
+                        break;
+                    case StringEncoding.UTF16BE:
+                        decoder = Encoding.BigEndianUnicode;
+                        break;
+                    case StringEncoding.ASCII:
+                        decoder = Encoding.ASCII;
+                        break;
+                    case StringEncoding.UTF32:
+                        decoder = Encoding.UTF32;
+                        break;
 #if NET6_0_OR_GREATER
-                    StringEncoding.Latin1 => Encoding.Latin1.GetString(bytes),
+                case StringEncoding.Latin1:
+                    decoder = Encoding.Latin1;
+                    break;
 #endif
 #pragma warning disable CS0618, SYSLIB0001
-                    StringEncoding.UTF7 => GetUTF7String(bytes),
+                    case StringEncoding.UTF7:
+                        decoder = Encoding.UTF7;
+                        break;
 #pragma warning restore CS0618, SYSLIB0001
-                    _ => throw new NotSupportedException($"Encoding {encoding} is not supported")
-                };
-            }
-
-            private static byte[] GetUTF7Bytes(string s)
-            {
-#pragma warning disable CS0618, SYSLIB0001
-                return Encoding.UTF7.GetBytes(s);
-#pragma warning restore CS0618, SYSLIB0001
-            }
-
-            private static string GetUTF7String(byte[] bytes)
-            {
-#pragma warning disable CS0618, SYSLIB0001
-                return Encoding.UTF7.GetString(bytes);
-#pragma warning restore CS0618, SYSLIB0001
+                    default:
+                        throw new ArgumentOutOfRangeException(nameof(encoding));
+                }
+                return decoder.GetString(bytes);
             }
         }
     }

@@ -180,37 +180,69 @@ namespace QingYi.Core.String.Base
 
         private static byte[] GetBytes(string input, StringEncoding encoding)
         {
-            Encoding encoder = encoding switch
+            Encoding encoder;
+            switch (encoding)
             {
-                StringEncoding.UTF8 => Encoding.UTF8,
-                StringEncoding.UTF16LE => Encoding.Unicode,
-                StringEncoding.UTF16BE => Encoding.BigEndianUnicode,
-                StringEncoding.UTF32 => Encoding.UTF32,
-                StringEncoding.UTF7 => Encoding.UTF7,
+                case StringEncoding.UTF8:
+                    encoder = Encoding.UTF8;
+                    break;
+                case StringEncoding.UTF16LE:
+                    encoder = Encoding.Unicode;
+                    break;
+                case StringEncoding.UTF16BE:
+                    encoder = Encoding.BigEndianUnicode;
+                    break;
+                case StringEncoding.UTF32:
+                    encoder = Encoding.UTF32;
+                    break;
+                case StringEncoding.UTF7:
+                    encoder = Encoding.UTF7;
+                    break;
 #if NET6_0_OR_GREATER
-                StringEncoding.Latin1 => Encoding.Latin1,
+                case StringEncoding.Latin1:
+                    encoder = Encoding.Latin1;
+                    break;
 #endif
-                StringEncoding.ASCII => Encoding.ASCII,
-                _ => throw new ArgumentOutOfRangeException(nameof(encoding))
-            };
+                case StringEncoding.ASCII:
+                    encoder = Encoding.ASCII;
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(encoding));
+            }
             return encoder.GetBytes(input);
         }
 
         private static string GetString(byte[] bytes, StringEncoding encoding)
         {
-            Encoding decoder = encoding switch
+            Encoding decoder;
+            switch (encoding)
             {
-                StringEncoding.UTF8 => Encoding.UTF8,
-                StringEncoding.UTF16LE => Encoding.Unicode,
-                StringEncoding.UTF16BE => Encoding.BigEndianUnicode,
-                StringEncoding.UTF32 => Encoding.UTF32,
-                StringEncoding.UTF7 => Encoding.UTF7,
+                case StringEncoding.UTF8:
+                    decoder = Encoding.UTF8;
+                    break;
+                case StringEncoding.UTF16LE:
+                    decoder = Encoding.Unicode;
+                    break;
+                case StringEncoding.UTF16BE:
+                    decoder = Encoding.BigEndianUnicode;
+                    break;
+                case StringEncoding.ASCII:
+                    decoder = Encoding.ASCII;
+                    break;
+                case StringEncoding.UTF32:
+                    decoder = Encoding.UTF32;
+                    break;
 #if NET6_0_OR_GREATER
-                StringEncoding.Latin1 => Encoding.Latin1,
+                case StringEncoding.Latin1:
+                    decoder = Encoding.Latin1;
+                    break;
 #endif
-                StringEncoding.ASCII => Encoding.ASCII,
-                _ => throw new ArgumentOutOfRangeException(nameof(encoding))
-            };
+                case StringEncoding.UTF7:
+                    decoder = Encoding.UTF7;
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(encoding));
+            }
             return decoder.GetString(bytes);
         }
 
@@ -224,28 +256,40 @@ namespace QingYi.Core.String.Base
 
         private static int GetRemainingBytes(int paddingCount)
         {
-            return paddingCount switch
+            switch (paddingCount)
             {
-                0 => 0,
-                1 => 4,
-                3 => 3,
-                4 => 2,
-                6 => 1,
-                _ => throw new FormatException("Invalid padding.")
-            };
+                case 0:
+                    return 0;
+                case 1:
+                    return 4;
+                case 3:
+                    return 3;
+                case 4:
+                    return 2;
+                case 6:
+                    return 1;
+                default:
+                    throw new FormatException("Invalid padding.");
+            }
         }
 
         private static int GetTruncateBits(int r)
         {
-            return r switch
+            switch (r)
             {
-                0 => 0,
-                1 => 2,
-                2 => 4,
-                3 => 1,
-                4 => 3,
-                _ => throw new ArgumentOutOfRangeException(nameof(r))
-            };
+                case 0:
+                    return 0;
+                case 1:
+                    return 2;
+                case 2:
+                    return 4;
+                case 3:
+                    return 1;
+                case 4:
+                    return 3;
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(r));
+            }
         }
     }
 }

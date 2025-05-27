@@ -54,6 +54,7 @@ namespace QingYi.Core.String.Base
             /// </summary>
             Crockford,
 
+#if NETSTANDARD2_1_OR_GREATER || NET5_0_OR_GREATER
             /// <summary>
             /// Extended Hex Base32 alphabet, which uses the digits 0-9 and letters A-V.<br />
             /// 扩展十六进制Base32字符集，使用数字0-9和字母A-V。
@@ -71,6 +72,7 @@ namespace QingYi.Core.String.Base
             /// WordSafe Base32字符集，设计用于避免使用外观相似的字符。
             /// </summary>
             WordSafe,
+#endif
 
             /// <summary>
             /// zBase32 alphabet, a variation of Base32 optimized for use in URLs.<br />
@@ -100,12 +102,14 @@ namespace QingYi.Core.String.Base
             {
                 case Base32.Alphabet.Crockford:
                     return Base32Crockford.Encode(input, encoding);
+#if NETSTANDARD2_1_OR_GREATER || NET5_0_OR_GREATER
                 case Base32.Alphabet.ExtendHex:
                     return Base32ExtendedHex.Encode(input, encoding);
                 case Base32.Alphabet.GeoHash:
                     return Base32GeoHash.Encode(input, encoding);
                 case Base32.Alphabet.WordSafe:
                     return Base32WordSafe.Encode(input, encoding);
+#endif
                 case Base32.Alphabet.zBase32:
                     return Base32z.Encode(input, encoding);
                 case Base32.Alphabet.RFC4648:
@@ -128,12 +132,14 @@ namespace QingYi.Core.String.Base
             {
                 case Base32.Alphabet.Crockford:
                     return Base32Crockford.Decode(input, encoding);
+#if NETSTANDARD2_1_OR_GREATER || NET5_0_OR_GREATER
                 case Base32.Alphabet.ExtendHex:
                     return Base32ExtendedHex.Decode(input, encoding);
                 case Base32.Alphabet.GeoHash:
                     return Base32GeoHash.Decode(input, encoding);
                 case Base32.Alphabet.WordSafe:
                     return Base32WordSafe.Decode(input, encoding);
+#endif
                 case Base32.Alphabet.zBase32:
                     return Base32z.Decode(input, encoding);
                 case Base32.Alphabet.RFC4648:

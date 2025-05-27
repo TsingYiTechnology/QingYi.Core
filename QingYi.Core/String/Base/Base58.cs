@@ -166,21 +166,29 @@ namespace QingYi.Core.String.Base
 
         private static Encoding GetEncoding(StringEncoding encoding)
         {
-            return encoding switch
+            switch (encoding)
             {
-                StringEncoding.UTF8 => Encoding.UTF8,
-                StringEncoding.UTF16LE => Encoding.Unicode,
-                StringEncoding.UTF16BE => Encoding.BigEndianUnicode,
-                StringEncoding.ASCII => Encoding.ASCII,
-                StringEncoding.UTF32 => Encoding.UTF32,
+                case StringEncoding.UTF8:
+                    return Encoding.UTF8;
+                case StringEncoding.UTF16LE:
+                    return Encoding.Unicode;
+                case StringEncoding.UTF16BE:
+                    return Encoding.BigEndianUnicode;
+                case StringEncoding.UTF32:
+                    return Encoding.UTF32;
 #if NET6_0_OR_GREATER
-                StringEncoding.Latin1 => Encoding.Latin1,
+                case StringEncoding.Latin1:
+                    return Encoding.GetEncoding(28591);
 #endif
-#pragma warning disable 0618, SYSLIB0001
-                StringEncoding.UTF7 => Encoding.UTF7,
-#pragma warning restore 0618, SYSLIB0001
-                _ => throw new NotSupportedException($"Encoding {encoding} is not supported")
-            };
+                case StringEncoding.ASCII:
+                    return Encoding.ASCII;
+#pragma warning disable CS0618, SYSLIB0001
+                case StringEncoding.UTF7:
+                    return Encoding.UTF7;
+#pragma warning restore CS0618, SYSLIB0001
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
         }
 
         private static byte[] GetBytes(string input, StringEncoding encoding) => GetEncoding(encoding).GetBytes(input);

@@ -1,4 +1,5 @@
-﻿using System;
+﻿#if NETSTANDARD2_1_OR_GREATER || NET6_0_OR_GREATER
+using System;
 using System.Text;
 
 namespace QingYi.Core.String.Base
@@ -245,3 +246,4 @@ namespace QingYi.Core.String.Base
         public static byte[] DecodeBase56(this string input) => Base56.Decode(input);
     }
 }
+#endif

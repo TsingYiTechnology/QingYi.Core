@@ -84,38 +84,54 @@ namespace QingYi.Core.String.Base
 
         private static byte[] GetEncodedBytes(string input, StringEncoding encoding, bool isBigEndian)
         {
-            return encoding switch
+            switch (encoding)
             {
-                StringEncoding.UTF8 => Encoding.UTF8.GetBytes(input),
-                StringEncoding.UTF16LE => Encoding.Unicode.GetBytes(input),
-                StringEncoding.UTF16BE => Encoding.BigEndianUnicode.GetBytes(input),
-                StringEncoding.UTF32 => GetUtf32Bytes(input, isBigEndian),
+                case StringEncoding.UTF8:
+                    return Encoding.UTF8.GetBytes(input);
+                case StringEncoding.UTF16LE:
+                    return Encoding.Unicode.GetBytes(input);
+                case StringEncoding.UTF16BE:
+                    return Encoding.BigEndianUnicode.GetBytes(input);
+                case StringEncoding.UTF32:
+                    return GetUtf32Bytes(input, isBigEndian);
 #if NET6_0_OR_GREATER
-                StringEncoding.Latin1 => Encoding.Latin1.GetBytes(input),
+                case StringEncoding.Latin1:
+                    return Encoding.GetEncoding(28591).GetBytes(input);
 #endif
-                StringEncoding.ASCII => Encoding.ASCII.GetBytes(input),
-                StringEncoding.UTF7 => Encoding.UTF7.GetBytes(input),
-                _ => throw new ArgumentOutOfRangeException(nameof(encoding))
-            };
+                case StringEncoding.ASCII:
+                    return Encoding.ASCII.GetBytes(input);
+                case StringEncoding.UTF7:
+                    return Encoding.UTF7.GetBytes(input);
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(encoding));
+            }
         }
 
         private static string GetDecodedString(byte[] bytes, StringEncoding encoding, bool isBigEndian)
         {
             if (bytes.Length == 0) return string.Empty;
 
-            return encoding switch
+            switch (encoding)
             {
-                StringEncoding.UTF8 => Encoding.UTF8.GetString(bytes),
-                StringEncoding.UTF16LE => Encoding.Unicode.GetString(bytes),
-                StringEncoding.UTF16BE => Encoding.BigEndianUnicode.GetString(bytes),
-                StringEncoding.UTF32 => GetUtf32String(bytes, isBigEndian),
+                case StringEncoding.UTF8:
+                    return Encoding.UTF8.GetString(bytes);
+                case StringEncoding.UTF16LE:
+                    return Encoding.Unicode.GetString(bytes);
+                case StringEncoding.UTF16BE:
+                    return Encoding.BigEndianUnicode.GetString(bytes);
+                case StringEncoding.UTF32:
+                    return GetUtf32String(bytes, isBigEndian);
 #if NET6_0_OR_GREATER
-                StringEncoding.Latin1 => Encoding.Latin1.GetString(bytes),
+                case StringEncoding.Latin1:
+                    return Encoding.GetEncoding(28591).GetString(bytes); // Latin1 代码页
 #endif
-                StringEncoding.ASCII => Encoding.ASCII.GetString(bytes),
-                StringEncoding.UTF7 => Encoding.UTF7.GetString(bytes),
-                _ => throw new ArgumentOutOfRangeException(nameof(encoding))
-            };
+                case StringEncoding.ASCII:
+                    return Encoding.ASCII.GetString(bytes);
+                case StringEncoding.UTF7:
+                    return Encoding.UTF7.GetString(bytes);
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(encoding));
+            }
         }
 
         private static byte[] GetUtf32Bytes(string input, bool isBigEndian)

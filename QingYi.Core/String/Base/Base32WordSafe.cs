@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿#if NETSTANDARD2_1_OR_GREATER || NET6_0_OR_GREATER
+using System.Text;
 using System;
 
 #pragma warning disable SYSLIB0001, CS0618
@@ -179,3 +180,4 @@ namespace QingYi.Core.String.Base
         }
     }
 }
+#endif

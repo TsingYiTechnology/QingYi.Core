@@ -34,8 +34,8 @@
 		<SignAssembly>False</SignAssembly>
 		<IncludeSymbols>True</IncludeSymbols>
 		<SymbolPackageFormat>snupkg</SymbolPackageFormat>
-		<AssemblyVersion>5.2.0.6</AssemblyVersion>
-		<FileVersion>5.2.0.6</FileVersion>
+		<AssemblyVersion>5.2.0.7</AssemblyVersion>
+		<FileVersion>5.2.0.7</FileVersion>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|netstandard2.1|AnyCPU'">

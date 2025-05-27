@@ -123,21 +123,29 @@ namespace QingYi.Core.String.Base
 
         private static Encoding GetEncoding(StringEncoding encoding)
         {
-            return encoding switch
+            switch (encoding)
             {
-                StringEncoding.UTF8 => Encoding.UTF8,
-                StringEncoding.UTF16LE => new UnicodeEncoding(false, false),
-                StringEncoding.UTF16BE => new UnicodeEncoding(true, false),
-                StringEncoding.ASCII => Encoding.ASCII,
-                StringEncoding.UTF32 => new UTF32Encoding(false, false),
-#if NET6_0_OR_GREATER
-            StringEncoding.Latin1 => Encoding.Latin1,
-#endif
+                case StringEncoding.UTF8:
+                    return Encoding.UTF8;
+                case StringEncoding.UTF16LE:
+                    return new UnicodeEncoding(false, false);
+                case StringEncoding.UTF16BE:
+                    return new UnicodeEncoding(true, false);
+                case StringEncoding.ASCII:
+                    return Encoding.ASCII;
+                case StringEncoding.UTF32:
+                    return new UTF32Encoding(false, false);
 #pragma warning disable CS0618, SYSLIB0001
-                StringEncoding.UTF7 => Encoding.UTF7,
+                case StringEncoding.UTF7:
+                    return Encoding.UTF7;
 #pragma warning restore CS0618, SYSLIB0001
-                _ => throw new ArgumentOutOfRangeException(nameof(encoding))
-            };
+#if NET6_0_OR_GREATER
+                case StringEncoding.Latin1:
+                    return Encoding.Latin1;
+#endif
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(encoding));
+            }
         }
     }
 
