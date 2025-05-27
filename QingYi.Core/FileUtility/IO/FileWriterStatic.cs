@@ -15,7 +15,7 @@ namespace QingYi.Core.FileUtility.IO
 
         public static async Task WriteAsync(byte[] data, string filePath)
         {
-            using var writer = new FileWriter(filePath);
+            await using var writer = new FileWriter(filePath);
             await writer.WriteAsync(data.AsMemory());
         }
 
