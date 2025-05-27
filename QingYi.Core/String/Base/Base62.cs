@@ -1,3 +1,4 @@
+#if NETSTANDARD2_1_OR_GREATER || NET5_0_OR_GREATER
 using System;
 using System.Buffers;
 using System.Runtime.CompilerServices;
@@ -338,3 +339,4 @@ namespace QingYi.Core.String.Base
         public static Span<byte> DecodeBase62ToSpanByte(string base62) => Base62.DecodeToSpanByte(base62);
     }
 }
+#endif
