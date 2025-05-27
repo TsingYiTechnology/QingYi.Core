@@ -25,8 +25,12 @@
 		<PackageReleaseNotes>
 			- Optmize Base 62 codec.
 			- Add Base 58 static method.
+			- Allow base coding to be compatible with .NET Standard 2.0.
 			- Temporarily hide the functions related to the registry.
 			- Add some method to get the info of the power plan.
+			- Remove compression method.
+			- Support .NET Standard 2.0.
+			- Optimize file IO methods.
 		</PackageReleaseNotes>
 		<PackageLicenseFile>LICENSE</PackageLicenseFile>
 		<PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
