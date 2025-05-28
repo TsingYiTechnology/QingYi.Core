@@ -3,13 +3,34 @@ using System.Collections.Generic;
 
 namespace QingYi.Core.Compression
 {
+    /// <summary>
+    /// Represents a single token in LZ77 compressed data
+    /// </summary>
     public struct Lz77Token
     {
-        public int Offset;    // 匹配偏移量（0表示无匹配）
-        public int Length;    // 匹配长度
-        public byte NextByte; // 下一个字符（或字面量）
+        /// <summary>
+        /// Offset to the start of matching data in the search buffer. 
+        /// Value 0 indicates no match found.
+        /// </summary>
+        public int Offset;
 
-        /// <inheritdoc/>
+        /// <summary>
+        /// Length of the matching data sequence
+        /// </summary>
+        public int Length;
+
+        /// <summary>
+        /// Next literal byte after the matched sequence
+        /// </summary>
+        public byte NextByte;
+
+        /// <summary>
+        /// Returns a formatted string representation of the token
+        /// </summary>
+        /// <returns>
+        /// String in format (Offset, Length, 'Char') for printable characters 
+        /// or (Offset, Length, 0xXX) for non-printable bytes
+        /// </returns>
         public override string ToString()
         {
             if (NextByte >= 32 && NextByte <= 126)
@@ -20,8 +41,30 @@ namespace QingYi.Core.Compression
         }
     }
 
+    /// <summary>
+    /// Provides LZ77 compression and decompression functionality
+    /// </summary>
     public class LZ77
     {
+        /// <summary>
+        /// Compresses input data using LZ77 algorithm
+        /// </summary>
+        /// <param name="data">Input byte array to compress</param>
+        /// <param name="searchBufferSize">
+        /// Maximum size of the search buffer (sliding window). 
+        /// Default is 1024 bytes.
+        /// </param>
+        /// <param name="lookAheadBufferSize">
+        /// Maximum size of the look-ahead buffer. 
+        /// Default is 256 bytes.
+        /// </param>
+        /// <returns>
+        /// Array of LZ77 tokens representing the compressed data
+        /// </returns>
+        /// <remarks>
+        /// Output tokens will always contain at least one byte (literal or match+literal).
+        /// The last token may have NextByte=0 as placeholder when at end of data.
+        /// </remarks>
         public static Lz77Token[] Encode(byte[] data, int searchBufferSize = 1024, int lookAheadBufferSize = 256)
         {
             List<Lz77Token> compressed = new List<Lz77Token>();
@@ -83,6 +126,21 @@ namespace QingYi.Core.Compression
             return compressed.ToArray();
         }
 
+        /// <summary>
+        /// Decompresses LZ77 tokenized data (tuple version)
+        /// </summary>
+        /// <param name="compressed">
+        /// Compressed data as list of (offset, length, nextByte) tuples
+        /// </param>
+        /// <returns>Decompressed byte array</returns>
+        /// <remarks>
+        /// <para>Structure of each token:</para>
+        /// <list type="bullet">
+        /// <item>When length=0: Outputs single literal byte (nextByte)</item>
+        /// <item>When length>0: Copies [length] bytes from [offset] positions back, 
+        /// then outputs nextByte (unless at end of stream)</item>
+        /// </list>
+        /// </remarks>
         public static byte[] Decode(List<(int offset, int length, byte nextByte)> compressed)
         {
             List<byte> output = new List<byte>();
@@ -114,6 +172,19 @@ namespace QingYi.Core.Compression
             return output.ToArray();
         }
 
+        /// <summary>
+        /// Decompresses LZ77 tokenized data (struct version)
+        /// </summary>
+        /// <param name="tokens">Array of Lz77Token structures</param>
+        /// <returns>Decompressed byte array</returns>
+        /// <remarks>
+        /// <para>Behavior per token:</para>
+        /// <list type="bullet">
+        /// <item>Zero-length tokens: Output NextByte as literal</item>
+        /// <item>Non-zero length: Copy [Length] bytes from [Offset] positions back,
+        /// then append NextByte (except for end-of-stream placeholder)</item>
+        /// </list>
+        /// </remarks>
         public static byte[] Decode(Lz77Token[] tokens)
         {
             List<byte> output = new List<byte>();
