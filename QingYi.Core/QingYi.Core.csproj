@@ -1,10 +1,10 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
 		<TargetFrameworks>netstandard2.0;netstandard2.1;net6.0;net7.0;net8.0;net9.0;net6.0-windows;net7.0-windows;net8.0-windows;net9.0-windows;net9.0-browser</TargetFrameworks>
 		<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
 		<Title>QingYi.Core</Title>
-		<Version>5.2.0-pre5</Version>
+		<Version>5.2.0-pre6</Version>
 		<Authors>QingYi-Studio</Authors>
 		<Copyright>AGPL-3.0</Copyright>
 		<PackageProjectUrl>https://github.com/QingYi-Studio/QingYi.Core</PackageProjectUrl>
@@ -23,14 +23,8 @@
 		<GenerateDocumentationFile>True</GenerateDocumentationFile>
 		<ProduceReferenceAssembly>True</ProduceReferenceAssembly>
 		<PackageReleaseNotes>
-			- Optmize Base 62 codec.
-			- Add Base 58 static method.
-			- Allow base coding to be compatible with .NET Standard 2.0.
-			- Temporarily hide the functions related to the registry.
-			- Add some method to get the info of the power plan.
-			- Remove compression method.
-			- Support .NET Standard 2.0.
-			- Optimize file IO methods.
+			- Support Deflate compression.
+			- Support LZ77 compression.
 		</PackageReleaseNotes>
 		<PackageLicenseFile>LICENSE</PackageLicenseFile>
 		<PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
@@ -38,8 +32,8 @@
 		<SignAssembly>False</SignAssembly>
 		<IncludeSymbols>True</IncludeSymbols>
 		<SymbolPackageFormat>snupkg</SymbolPackageFormat>
-		<AssemblyVersion>5.2.0.7</AssemblyVersion>
-		<FileVersion>5.2.0.7</FileVersion>
+		<AssemblyVersion>5.2.0.8</AssemblyVersion>
+		<FileVersion>5.2.0.8</FileVersion>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|netstandard2.1|AnyCPU'">
@@ -183,7 +177,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<Folder Include="Compression\" />
+		<Folder Include="Compression\Unsafe\" />
 		<Folder Include="EnvironmentVariable\User\" />
 		<Folder Include="EnvironmentVariable\System\" />
 		<Folder Include="FileUtility\UserProfile\AppData\" />
