@@ -177,7 +177,6 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<Folder Include="Compression\Unsafe\" />
 		<Folder Include="EnvironmentVariable\User\" />
 		<Folder Include="EnvironmentVariable\System\" />
 		<Folder Include="FileUtility\UserProfile\AppData\" />
