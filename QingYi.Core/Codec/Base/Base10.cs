@@ -1,7 +1,7 @@
 using System;
 using System.Text;
 
-namespace QingYi.Core.String.Base
+namespace QingYi.Core.Codec.Base
 {
     /// <summary>
     /// Base10 codec library.<br />
@@ -18,7 +18,7 @@ namespace QingYi.Core.String.Base
             for (int i = 0; i < 256; i++)
             {
                 s_digits100[i] = (char)('0' + i / 100);
-                s_digits10[i] = (char)('0' + (i % 100) / 10);
+                s_digits10[i] = (char)('0' + i % 100 / 10);
                 s_digits1[i] = (char)('0' + i % 10);
             }
         }

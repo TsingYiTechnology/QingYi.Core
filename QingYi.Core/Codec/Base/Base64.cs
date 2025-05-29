@@ -4,7 +4,7 @@ using System.Text;
 
 #pragma warning disable CS0675, SYSLIB0001
 
-namespace QingYi.Core.String.Base
+namespace QingYi.Core.Codec.Base
 {
 #if NET6_0_OR_GREATER
 

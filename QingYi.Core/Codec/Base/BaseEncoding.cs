@@ -1,7 +1,7 @@
 ﻿// Copyright (c) 2025 Tsing Yi Studio - Grey-Wind
 using System;
 
-namespace QingYi.Core.String.Base
+namespace QingYi.Core.Codec.Base
 {
     /// <summary>
     /// 字符串编码格式。<br />

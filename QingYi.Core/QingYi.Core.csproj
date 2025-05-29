@@ -23,8 +23,10 @@
 		<GenerateDocumentationFile>True</GenerateDocumentationFile>
 		<ProduceReferenceAssembly>True</ProduceReferenceAssembly>
 		<PackageReleaseNotes>
+			- Rename "QingYi.Core.String" to "QingYi.Core.Codec".
 			- Support Deflate compression.
 			- Support LZ77 compression.
+			- Support LZMA compression.
 		</PackageReleaseNotes>
 		<PackageLicenseFile>LICENSE</PackageLicenseFile>
 		<PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>

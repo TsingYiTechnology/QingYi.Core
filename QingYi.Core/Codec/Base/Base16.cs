@@ -1,7 +1,7 @@
 using System.Text;
 using System;
 
-namespace QingYi.Core.String.Base
+namespace QingYi.Core.Codec.Base
 {
     /// <summary>
     /// Base16 codec library.<br />
@@ -19,7 +19,7 @@ namespace QingYi.Core.String.Base
             for (int i = 0; i < 256; i++)
             {
                 string s = i.ToString(format + "2");
-                result[i] = ((uint)s[0]) + ((uint)s[1] << 16);
+                result[i] = s[0] + ((uint)s[1] << 16);
             }
             return result;
         }
@@ -130,7 +130,7 @@ namespace QingYi.Core.String.Base
                         if (b1 == 0xFF || b2 == 0xFF)
                             ThrowInvalidCharacter();
 
-                        *currentResult++ = (byte)((b1 << 4) | b2);
+                        *currentResult++ = (byte)(b1 << 4 | b2);
                     }
                 }
             }

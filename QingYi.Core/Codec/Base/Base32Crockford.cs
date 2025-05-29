@@ -4,7 +4,7 @@ using System.Text;
 
 #pragma warning disable SYSLIB0001, CS0618
 
-namespace QingYi.Core.String.Base
+namespace QingYi.Core.Codec.Base
 {
     /// <summary>
     /// Base32 codec library (Crockford's Base32).<br />
@@ -88,13 +88,13 @@ namespace QingYi.Core.String.Base
 
                 while (pIn < pEnd)
                 {
-                    buffer = (buffer << 8) | *pIn++;
+                    buffer = buffer << 8 | *pIn++;
                     bufferBits += 8;
 
                     while (bufferBits >= 5)
                     {
                         bufferBits -= 5;
-                        byte value = (byte)((buffer >> bufferBits) & 0x1F);
+                        byte value = (byte)(buffer >> bufferBits & 0x1F);
                         *pOut++ = Alphabet[value];
                         outputIndex++;
                     }
@@ -102,7 +102,7 @@ namespace QingYi.Core.String.Base
 
                 if (bufferBits > 0)
                 {
-                    byte value = (byte)((buffer << (5 - bufferBits)) & 0x1F);
+                    byte value = (byte)(buffer << 5 - bufferBits & 0x1F);
                     *pOut++ = Alphabet[value];
                     outputIndex++;
                 }
@@ -128,7 +128,7 @@ namespace QingYi.Core.String.Base
             }
 
             if (validCharCount == 0) return Array.Empty<byte>();
-            int outputLength = (validCharCount * 5) / 8;
+            int outputLength = validCharCount * 5 / 8;
             byte[] output = new byte[outputLength];
             int outputIndex = 0;
 
@@ -147,13 +147,13 @@ namespace QingYi.Core.String.Base
                     char c = *p++;
                     if (IsIgnoredChar(c)) continue;
 
-                    buffer = (buffer << 5) | CharMap[c];
+                    buffer = buffer << 5 | CharMap[c];
                     bufferBits += 5;
 
                     while (bufferBits >= 8)
                     {
                         bufferBits -= 8;
-                        *pOut++ = (byte)((buffer >> bufferBits) & 0xFF);
+                        *pOut++ = (byte)(buffer >> bufferBits & 0xFF);
                         outputIndex++;
                     }
                 }

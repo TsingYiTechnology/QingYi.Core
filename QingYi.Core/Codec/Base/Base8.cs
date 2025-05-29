@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Text;
 
-namespace QingYi.Core.String.Base
+namespace QingYi.Core.Codec.Base
 {
     /// <summary>
     /// Base 8 编解码库。<br />
@@ -33,7 +33,7 @@ namespace QingYi.Core.String.Base
                 {
                     byte b = *src++;
                     *dest++ = (char)('0' + (b >> 6));
-                    *dest++ = (char)('0' + ((b >> 3) & 0x07));
+                    *dest++ = (char)('0' + (b >> 3 & 0x07));
                     *dest++ = (char)('0' + (b & 0x07));
                 }
             }
@@ -72,7 +72,7 @@ namespace QingYi.Core.String.Base
                         if (c < '0' || c > '7')
                             throw new ArgumentException($"Invalid Base8 character: {(char)c}");
 
-                        b = (byte)((b << 3) | (c - '0'));
+                        b = (byte)(b << 3 | c - '0');
                     }
                     *dest++ = b;
                 }

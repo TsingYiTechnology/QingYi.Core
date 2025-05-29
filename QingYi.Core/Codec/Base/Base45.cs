@@ -3,7 +3,7 @@ using System.Text;
 
 #pragma warning disable CA1510, CS0618, SYSLIB0001, IDE0300, IDE0301
 
-namespace QingYi.Core.String.Base
+namespace QingYi.Core.Codec.Base
 {
     /// <summary>
     /// Base45 codec library.<br />
@@ -64,7 +64,7 @@ namespace QingYi.Core.String.Base
         private static string EncodeBytes(byte[] b)
         {
             int inputLength = b.Length;
-            int outputLength = (inputLength / 2) * 3 + (inputLength % 2 == 1 ? 2 : 0);
+            int outputLength = inputLength / 2 * 3 + (inputLength % 2 == 1 ? 2 : 0);
             char[] output = new char[outputLength];
 
             fixed (byte* inputPtr = b)
@@ -75,7 +75,7 @@ namespace QingYi.Core.String.Base
 
                 for (int i = 0; i < inputLength - 1; i += 2)
                 {
-                    int value = (*ip++) << 8 | *ip++;
+                    int value = *ip++ << 8 | *ip++;
                     int d3 = value % 45;
                     value /= 45;
                     int d2 = value % 45;
@@ -110,7 +110,7 @@ namespace QingYi.Core.String.Base
             if (remainder == 1)
                 throw new ArgumentException("Invalid Base45 string length.");
 
-            int outputLength = (inputLength / 3) * 2 + (remainder == 2 ? 1 : 0);
+            int outputLength = inputLength / 3 * 2 + (remainder == 2 ? 1 : 0);
             byte[] output = new byte[outputLength];
 
             fixed (char* inputPtr = input)

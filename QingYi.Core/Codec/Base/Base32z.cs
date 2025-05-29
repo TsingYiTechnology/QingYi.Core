@@ -3,7 +3,7 @@ using System;
 
 #pragma warning disable SYSLIB0001, CS0618
 
-namespace QingYi.Core.String.Base
+namespace QingYi.Core.Codec.Base
 {
     /// <summary>
     /// Base32 codec library (z-base-32).<br />
@@ -156,12 +156,12 @@ namespace QingYi.Core.String.Base
                     byte* end = ptr + byteCount;
                     while (current < end)
                     {
-                        buffer = (buffer << 8) | *current++;
+                        buffer = buffer << 8 | *current++;
                         bitsInBuffer += 8;
 
                         while (bitsInBuffer >= 5)
                         {
-                            int index = (int)((buffer >> (bitsInBuffer - 5)) & 0x1F);
+                            int index = (int)(buffer >> bitsInBuffer - 5 & 0x1F);
                             output[outputPos++] = ZBase32Chars[index];
                             bitsInBuffer -= 5;
                             buffer &= (1UL << bitsInBuffer) - 1;
@@ -172,7 +172,7 @@ namespace QingYi.Core.String.Base
 
             if (bitsInBuffer > 0)
             {
-                buffer <<= (5 - bitsInBuffer);
+                buffer <<= 5 - bitsInBuffer;
                 int index = (int)(buffer & 0x1F);
                 output[outputPos++] = ZBase32Chars[index];
             }
@@ -207,12 +207,12 @@ namespace QingYi.Core.String.Base
                             throw new ArgumentException($"Invalid character '{c}' in Base32 string.");
 
                         byte value = ReverseTable[c];
-                        buffer = (buffer << 5) | value;
+                        buffer = buffer << 5 | value;
                         bitsInBuffer += 5;
 
                         while (bitsInBuffer >= 8)
                         {
-                            byte b = (byte)(buffer >> (bitsInBuffer - 8));
+                            byte b = (byte)(buffer >> bitsInBuffer - 8);
                             output[outputPos++] = b;
                             bitsInBuffer -= 8;
                             buffer &= (1UL << bitsInBuffer) - 1;
@@ -223,7 +223,7 @@ namespace QingYi.Core.String.Base
 
             if (bitsInBuffer > 0)
             {
-                buffer <<= (8 - bitsInBuffer);
+                buffer <<= 8 - bitsInBuffer;
                 output[outputPos++] = (byte)buffer;
             }
 

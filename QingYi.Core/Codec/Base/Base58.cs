@@ -1,7 +1,7 @@
 ﻿using System.Text;
 using System;
 
-namespace QingYi.Core.String.Base
+namespace QingYi.Core.Codec.Base
 {
     /// <summary>
     /// Base58 codec library.<br />

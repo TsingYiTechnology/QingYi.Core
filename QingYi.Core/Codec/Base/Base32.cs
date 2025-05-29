@@ -1,6 +1,7 @@
-﻿using System;
+﻿using QingYi.Core.Codec.Base;
+using System;
 
-namespace QingYi.Core.String.Base
+namespace QingYi.Core.Codec.Base
 {
     /// <summary>
     /// Base32 codec library (Default alphabet is RFC4648).<br />

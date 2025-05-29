@@ -2,7 +2,7 @@
 using System;
 using System.Text;
 
-namespace QingYi.Core.String.Base
+namespace QingYi.Core.Codec.Base
 {
     /// <summary>
     /// Base56 codec library.<br />

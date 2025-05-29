@@ -3,7 +3,7 @@ using System;
 
 #pragma warning disable SYSLIB0001, CS0618, CA1510
 
-namespace QingYi.Core.String.Base
+namespace QingYi.Core.Codec.Base
 {
     /// <summary>
     /// Base 2 编解码库。<br />
@@ -22,7 +22,7 @@ namespace QingYi.Core.String.Base
                 byte b = (byte)i;
                 for (int j = 0; j < 8; j++)
                 {
-                    PrecomputedBits[i * 8 + j] = (b & (0x80 >> j)) != 0 ? '1' : '0';
+                    PrecomputedBits[i * 8 + j] = (b & 0x80 >> j) != 0 ? '1' : '0';
                 }
             }
         }
@@ -185,7 +185,7 @@ namespace QingYi.Core.String.Base
 
                 for (int i = 0; i < byteCount; i++)
                 {
-                    char* precomputed = precomputedPtr + (*src++) * 8;
+                    char* precomputed = precomputedPtr + *src++ * 8;
                     Buffer.MemoryCopy(precomputed, dest, 16, 16); // 复制16字节（8个char）
                     dest += 8;
                 }
@@ -217,7 +217,7 @@ namespace QingYi.Core.String.Base
                         if (c != '0' && c != '1')
                             throw new ArgumentException($"Invalid character '{c}' in Base2 string");
 
-                        value |= (byte)((c - '0') << (7 - j));
+                        value |= (byte)(c - '0' << 7 - j);
                     }
                     *dest++ = value;
                 }

@@ -4,7 +4,7 @@ using System.Text;
 
 #pragma warning disable SYSLIB0001, CS0618
 
-namespace QingYi.Core.String.Base
+namespace QingYi.Core.Codec.Base
 {
     /// <summary>
     /// Base32 codec library (Geohash).<br />

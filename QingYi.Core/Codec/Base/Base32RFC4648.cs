@@ -3,7 +3,7 @@ using System.Text;
 
 #pragma warning disable CA1510, CS0618, SYSLIB0001, IDE0300, IDE0301
 
-namespace QingYi.Core.String.Base
+namespace QingYi.Core.Codec.Base
 {
     /// <summary>
     /// Base32 codec library (RFC4648).<br />
