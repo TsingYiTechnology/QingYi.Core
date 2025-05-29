@@ -9,18 +9,53 @@ using System.Threading.Tasks;
 
 namespace QingYi.Core.Compression
 {
+    /// <summary>
+    /// Provides PPMd compression and decompression functionality with support for parallel processing.
+    /// Implements the <see cref="IDisposable"/> interface for resource cleanup.
+    /// </summary>
     public class PPMd : IDisposable
     {
         private const int HeaderSize = 10;
 
+        /// <summary>
+        /// Gets the compression level (1-12) used by the PPMd algorithm.
+        /// </summary>
         public int CompressionLevel { get; }
+
+        /// <summary>
+        /// Gets the number of threads used for parallel compression/decompression.
+        /// </summary>
         public int ThreadCount { get; }
+
+        /// <summary>
+        /// Gets the dictionary size in bytes (1MB-512MB) used for compression.
+        /// </summary>
         public int DictionarySize { get; }
+
+        /// <summary>
+        /// Gets the model order (2-16) controlling context length for predictions.
+        /// </summary>
         public int ModelOrder { get; }
 
         private readonly bool _parallelExecution;
         private bool _disposed;
 
+        /// <summary>
+        /// Initializes a new instance of the PPMd compressor/decompressor.
+        /// </summary>
+        /// <param name="compressionLevel">Compression level (1-12). Default is 6.</param>
+        /// <param name="threadCount">
+        /// Number of processing threads. Default (0) uses Environment.ProcessorCount.
+        /// </param>
+        /// <param name="dictionarySize">
+        /// Dictionary size in bytes (1MB-512MB). Default is 16MB.
+        /// </param>
+        /// <param name="modelOrder">
+        /// Model order (2-16) for prediction contexts. Default is 6.
+        /// </param>
+        /// <exception cref="ArgumentException">
+        /// Thrown when modelOrder or dictionarySize are outside valid ranges.
+        /// </exception>
         public PPMd(int compressionLevel = 6, int threadCount = 0, int dictionarySize = 16 * 1024 * 1024, int modelOrder = 6)
         {
             if (modelOrder < 2 || modelOrder > 16)
@@ -36,6 +71,11 @@ namespace QingYi.Core.Compression
             _parallelExecution = ThreadCount > 1;
         }
 
+        /// <summary>
+        /// Compresses data from the input stream and writes it to the output stream.
+        /// </summary>
+        /// <param name="input">Stream containing uncompressed data.</param>
+        /// <param name="output">Stream to receive compressed data.</param>
         public void Compress(Stream input, Stream output)
         {
             WriteHeader(output);
@@ -46,6 +86,14 @@ namespace QingYi.Core.Compression
                 SingleThreadCompress(input, output);
         }
 
+        /// <summary>
+        /// Decompresses data from the input stream and writes it to the output stream.
+        /// </summary>
+        /// <param name="input">Stream containing compressed data.</param>
+        /// <param name="output">Stream to receive decompressed data.</param>
+        /// <exception cref="InvalidDataException">
+        /// Thrown for invalid headers or stream corruption.
+        /// </exception>
         public void Decompress(Stream input, Stream output)
         {
             ReadHeader(input);
@@ -228,6 +276,9 @@ namespace QingYi.Core.Compression
             writer.Wait();
         }
 
+        /// <summary>
+        /// Releases all resources used by the PPMd instance.
+        /// </summary>
         public void Dispose()
         {
             if (!_disposed)
