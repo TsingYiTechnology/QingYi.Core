@@ -150,6 +150,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
+		<None Remove="Compression\PPMd_EN.md" />
 		<None Remove="FileUtility\IO\FileWriter_CN.md" />
 		<None Remove="icon.png" />
 		<None Remove="readme.md" />
@@ -158,6 +159,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
+		<Content Include="Compression\PPMd_EN.md" />
 		<Content Include="FileUtility\IO\FileWriter_CN.md" />
 		<Content Include="icon.png">
 			<Pack>True</Pack>
