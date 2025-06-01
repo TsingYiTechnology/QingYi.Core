@@ -4,8 +4,8 @@ using System.Text;
 namespace QingYi.Core.Codec.Base
 {
     /// <summary>
-    /// Base10 codec library.<br />
-    /// Base10 编解码库。
+    /// Provides Base10 encoding and decoding functionality.
+    /// Base10 represents each byte as three decimal digits (000-255).
     /// </summary>
     public class Base10
     {
@@ -24,12 +24,12 @@ namespace QingYi.Core.Codec.Base
         }
 
         /// <summary>
-        /// Base10 encoding of the string.<br />
-        /// 将字符串进行Base10编码。
+        /// Encodes a string into Base10 format.
         /// </summary>
-        /// <param name="input">The string to be converted.<br />需要转换的字符串</param>
-        /// <param name="encoding">The encoding of the string.<br />字符串的编码方式</param>
-        /// <returns>The encoded string.<br />被编码的字符串</returns>
+        /// <param name="input">The string to encode.</param>
+        /// <param name="encoding">Character encoding to use (default: UTF8).</param>
+        /// <returns>Base10 encoded string.</returns>
+        /// <exception cref="ArgumentNullException">Thrown if input is null.</exception>
         public static string Encode(string input, StringEncoding encoding = StringEncoding.UTF8)
         {
             if (input == null) throw new ArgumentNullException(nameof(input));
@@ -39,12 +39,27 @@ namespace QingYi.Core.Codec.Base
         }
 
         /// <summary>
-        /// Base10 decoding of the string.<br />
-        /// 将字符串进行Base10解码。
+        /// Encodes a byte array into Base10 format.
         /// </summary>
-        /// <param name="base10String">The string to be converted.<br />需要转换的字符串</param>
-        /// <param name="encoding">The encoding of the string.<br />字符串的编码方式</param>
-        /// <returns>The decoded string.<br />被解码的字符串</returns>
+        /// <param name="input">Byte array to encode.</param>
+        /// <returns>Base10 encoded string.</returns>
+        /// <exception cref="ArgumentNullException">Thrown if input is null.</exception>
+        public static string Encode(byte[] input)
+        {
+            if (input == null) throw new ArgumentNullException(nameof(input));
+
+            return EncodeBytes(input);
+        }
+
+        /// <summary>
+        /// Decodes a Base10 string into its original string.
+        /// </summary>
+        /// <param name="base10String">Base10 encoded string.</param>
+        /// <param name="encoding">Character encoding to use (default: UTF8).</param>
+        /// <returns>Decoded original string.</returns>
+        /// <exception cref="ArgumentNullException">Thrown if input is null.</exception>
+        /// <exception cref="ArgumentException">Thrown for invalid input length.</exception>
+        /// <exception cref="FormatException">Thrown for invalid characters or values.</exception>
         public static string Decode(string base10String, StringEncoding encoding = StringEncoding.UTF8)
         {
             if (base10String == null) throw new ArgumentNullException(nameof(base10String));
@@ -53,7 +68,111 @@ namespace QingYi.Core.Codec.Base
             return GetEncoding(encoding).GetString(bytes);
         }
 
-        internal static string EncodeBytes(byte[] bytes)
+        /// <summary>
+        /// Decodes a Base10 string into a byte array.
+        /// </summary>
+        /// <param name="base10">Base10 encoded string.</param>
+        /// <returns>Decoded byte array.</returns>
+        /// <exception cref="ArgumentNullException">Thrown if input is null.</exception>
+        /// <exception cref="ArgumentException">Thrown for invalid input length.</exception>
+        /// <exception cref="FormatException">Thrown for invalid characters or values.</exception>
+        public static byte[] Decode(string base10)
+        {
+            if (base10 == null) throw new ArgumentNullException(nameof(base10));
+
+            byte[] bytes = DecodeToBytes(base10);
+            return bytes;
+        }
+
+        /// <summary>
+        /// Encodes various data types into Base10 format.
+        /// </summary>
+        /// <param name="input">
+        /// Supported types: 
+        /// string, byte[], int, long, float, double, short, ushort, uint, ulong, decimal
+        /// </param>
+        /// <returns>Base10 encoded string.</returns>
+        /// <exception cref="ArgumentException">Thrown for unsupported types.</exception>
+        public static object Encode(object input)
+        {
+            switch (input)
+            {
+                case null:
+                    return null;
+                case string _:
+                    return Encode((string)input);
+                case byte[] _:
+                    return Encode((byte[])input);
+                case int _:
+                    return Encode(BitConverter.GetBytes((int)input));
+                case long _:
+                    return Encode(BitConverter.GetBytes((long)input));
+                case float _:
+                    return Encode(BitConverter.GetBytes((float)input));
+                case double _:
+                    return Encode(BitConverter.GetBytes((double)input));
+                case short _:
+                    return Encode(BitConverter.GetBytes((short)input));
+                case ushort _:
+                    return Encode(BitConverter.GetBytes((ushort)input));
+                case uint _:
+                    return Encode(BitConverter.GetBytes((uint)input));
+                case ulong _:
+                    return Encode(BitConverter.GetBytes((ulong)input));
+                case decimal _:
+                    byte[] decimalBytes = new byte[16];
+                    decimal.GetBits((decimal)input).CopyTo(decimalBytes, 0);
+                    return Encode(decimalBytes);
+
+                default:
+                    throw new ArgumentException("This type is not supported temporarily.");
+            }
+        }
+
+        /// <summary>
+        /// Decodes various data types from Base10 format.
+        /// </summary>
+        /// <param name="input">
+        /// Supported types: 
+        /// string (Base10 encoded), int, long, short, ushort, uint, ulong
+        /// </param>
+        /// <returns>
+        /// For string: decoded string (UTF8)
+        /// For numeric types: decoded byte array
+        /// </returns>
+        /// <exception cref="ArgumentException">Thrown for unsupported types.</exception>
+        public static object Decode(object input)
+        {
+            switch (input)
+            {
+                case null:
+                    return null;
+                case string _:
+                    return Decode((string)input);
+                case int _:
+                    return Decode(Convert.ToString((int)input));
+                case long _:
+                    return Decode(Convert.ToString((long)input));
+                case short _:
+                    return Decode(Convert.ToString((short)input));
+                case ushort _:
+                    return Decode(Convert.ToString((ushort)input));
+                case uint _:
+                    return Decode(Convert.ToString((uint)input));
+                case ulong _:
+                    return Decode(Convert.ToString((ulong)input));
+
+                default:
+                    throw new ArgumentException("This type is not supported temporarily.");
+            }
+        }
+
+        /// <summary>
+        /// Efficiently encodes byte array to Base10 using precomputed digits.
+        /// </summary>
+        /// <param name="bytes">Byte array to encode.</param>
+        /// <returns>Base10 encoded string.</returns>
+        public static string EncodeBytes(byte[] bytes)
         {
             if (bytes == null || bytes.Length == 0) return string.Empty;
 
@@ -81,7 +200,14 @@ namespace QingYi.Core.Codec.Base
             return new string(result);
         }
 
-        internal static byte[] DecodeToBytes(string base10String)
+        /// <summary>
+        /// Decodes Base10 string to byte array.
+        /// </summary>
+        /// <param name="base10String">Base10 encoded string (length must be multiple of 3).</param>
+        /// <returns>Decoded byte array.</returns>
+        /// <exception cref="ArgumentException">Thrown for invalid input length.</exception>
+        /// <exception cref="FormatException">Thrown for invalid characters or values.</exception>
+        public static byte[] DecodeToBytes(string base10String)
         {
             if (base10String.Length % 3 != 0)
                 throw new ArgumentException("Invalid Base10 string length", nameof(base10String));
@@ -121,6 +247,12 @@ namespace QingYi.Core.Codec.Base
             return result;
         }
 
+        /// <summary>
+        /// Gets encoding for specified encoding type.
+        /// </summary>
+        /// <param name="encoding">Encoding type to resolve.</param>
+        /// <returns>Configured Encoding instance.</returns>
+        /// <exception cref="ArgumentOutOfRangeException">Thrown for unsupported encoding types.</exception>
         private static Encoding GetEncoding(StringEncoding encoding)
         {
             switch (encoding)
@@ -150,43 +282,38 @@ namespace QingYi.Core.Codec.Base
     }
 
     /// <summary>
-    /// Static string extension of Base10 codec library.<br />
-    /// Base10 编解码库的静态字符串拓展。
+    /// Provides extension methods for Base10 encoding and decoding.
     /// </summary>
     public static class Base10Extension
     {
         /// <summary>
-        /// Base10 encoding of the string.<br />
-        /// 将字符串进行 Base10 编码。
+        /// Encodes string to Base10 format.
         /// </summary>
-        /// <param name="input">The string to be converted.<br />需要转换的字符串</param>
-        /// <param name="encoding">The encoding of the string.<br />字符串的编码方式</param>
-        /// <returns>The encoded string.<br />被编码的字符串</returns>
+        /// <param name="input">String to encode.</param>
+        /// <param name="encoding">Character encoding to use (default: UTF8).</param>
+        /// <returns>Base10 encoded string.</returns>
         public static string EncodeBase10(this string input, StringEncoding encoding = StringEncoding.UTF8) => Base10.Encode(input, encoding);
 
         /// <summary>
-        /// Base10 decoding of the string.<br />
-        /// 将字符串进行 Base10 解码。
+        /// Decodes Base10 string to original string.
         /// </summary>
-        /// <param name="input">The string to be converted.<br />需要转换的字符串</param>
-        /// <param name="encoding">The encoding of the string.<br />字符串的编码方式</param>
-        /// <returns>The decoded string.<br />被解码的字符串</returns>
+        /// <param name="input">Base10 encoded string.</param>
+        /// <param name="encoding">Character encoding to use (default: UTF8).</param>
+        /// <returns>Decoded original string.</returns>
         public static string DecodeBase10(this string input, StringEncoding encoding = StringEncoding.UTF8) => Base10.Decode(input, encoding);
 
         /// <summary>
-        /// Base10 encoding of the string.<br />
-        /// 将字符串进行 Base10 编码。
+        /// Encodes byte array to Base10 format.
         /// </summary>
-        /// <param name="bytes">The bytes to be converted.<br />需要转换的字节数组</param>
-        /// <returns>The encoded string.<br />被编码的字符串</returns>
+        /// <param name="bytes">Byte array to encode.</param>
+        /// <returns>Base10 encoded string.</returns>
         public static string EncodeBase10(this byte[] bytes) => Base10.EncodeBytes(bytes);
 
         /// <summary>
-        /// Base10 decoding of the string.<br />
-        /// 将字符串进行 Base10 解码。
+        /// Decodes Base10 string to byte array.
         /// </summary>
-        /// <param name="base10">The string to be converted.<br />需要转换的字符串</param>
-        /// <returns>The decoded bytes.<br />被解码的字节数组</returns>
+        /// <param name="base10">Base10 encoded string.</param>
+        /// <returns>Decoded byte array.</returns>
         public static byte[] DecodeBase10(this string base10) => Base10.DecodeToBytes(base10);
     }
 }
