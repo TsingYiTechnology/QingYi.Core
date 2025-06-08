@@ -4,7 +4,7 @@
 		<TargetFrameworks>netstandard2.0;netstandard2.1;net6.0;net7.0;net8.0;net9.0;net6.0-windows;net7.0-windows;net8.0-windows;net9.0-windows;net9.0-browser</TargetFrameworks>
 		<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
 		<Title>QingYi.Core</Title>
-		<Version>5.2.0-pre6-internalversion2</Version>
+		<Version>5.2.0-pre6-alpha1</Version>
 		<Authors>QingYi-Studio</Authors>
 		<Copyright>AGPL-3.0</Copyright>
 		<PackageProjectUrl>https://github.com/QingYi-Studio/QingYi.Core</PackageProjectUrl>
@@ -26,8 +26,8 @@
 			- Rename "QingYi.Core.String" to "QingYi.Core.Codec".
 			- Support Deflate compression.
 			- Support LZ77 compression.
-			- Support LZMA compression.
 			- Optimize the Base10 encoding and decoding implementation.
+			- Support encryption and decryption-related functions (DES)
 		</PackageReleaseNotes>
 		<PackageLicenseFile>LICENSE</PackageLicenseFile>
 		<PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
