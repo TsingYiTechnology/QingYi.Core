@@ -4,7 +4,7 @@
 		<TargetFrameworks>netstandard2.0;netstandard2.1;net5.0;net6.0;net7.0;net8.0;net9.0;net5.0-windows;net6.0-windows;net7.0-windows;net8.0-windows;net9.0-windows;net9.0-browser</TargetFrameworks>
 		<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
 		<Title>QingYi.Core</Title>
-		<Version>5.2.0-pre6-alpha1-internalversion5</Version>
+		<Version>5.2.0-pre6-alpha1-internalversion6</Version>
 		<Authors>QingYi-Studio</Authors>
 		<Copyright>AGPL-3.0</Copyright>
 		<PackageProjectUrl>https://github.com/QingYi-Studio/QingYi.Core</PackageProjectUrl>
@@ -36,8 +36,8 @@
 		<SignAssembly>False</SignAssembly>
 		<IncludeSymbols>True</IncludeSymbols>
 		<SymbolPackageFormat>snupkg</SymbolPackageFormat>
-		<AssemblyVersion>5.2.0.11</AssemblyVersion>
-		<FileVersion>5.2.0.14</FileVersion>
+		<AssemblyVersion>5.2.0.12</AssemblyVersion>
+		<FileVersion>5.2.0.15</FileVersion>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|netstandard2.1|AnyCPU'">
@@ -141,12 +141,6 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<Compile Remove="PowerSettings\**" />
-		<EmbeddedResource Remove="PowerSettings\**" />
-		<None Remove="PowerSettings\**" />
-	</ItemGroup>
-
-	<ItemGroup>
 	  <Compile Remove="ILOVEYOU.cs" />
 	</ItemGroup>
 
@@ -187,8 +181,6 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<Folder Include="EnvironmentVariable\User\" />
-		<Folder Include="EnvironmentVariable\System\" />
 		<Folder Include="FileUtility\UserProfile\AppData\" />
 	</ItemGroup>
 
