@@ -32,14 +32,3 @@ else
     Console.WriteLine($"LZ77 验证失败。textBytes: {BitConverter.ToString(textBytes)}; cTemp: {lz77Tokens}; dTemp: {BitConverter.ToString(dTemp)}");
 }
 #endregion
-
-#region LZMA
-if (Validator.LZMACheck())
-{
-    Console.WriteLine("LZMA 验证通过");
-}
-else
-{
-    Console.WriteLine("LZMA 验证失败");
-}
-#endregion
