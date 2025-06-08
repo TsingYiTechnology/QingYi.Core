@@ -6,7 +6,11 @@ namespace QingYi.Core.Crypto
 {
     public class DESCrypto : ICrypto
     {
+#if NET6_0_OR_GREATER
+    private readonly DES _desProvider;
+#else
         private readonly DESCryptoServiceProvider _desProvider;
+#endif
         private readonly CipherMode _cipherMode;
         private readonly PaddingMode _paddingMode;
 
@@ -26,11 +30,17 @@ namespace QingYi.Core.Crypto
 
         public DESCrypto(CipherMode cipherMode, PaddingMode paddingMode)
         {
-            _desProvider = new DESCryptoServiceProvider
-            {
-                Mode = cipherMode,
-                Padding = paddingMode
-            };
+#if NET6_0_OR_GREATER && !BROWSER
+        // .NET 6+ 使用现代工厂方法
+        _desProvider = DES.Create();
+#else
+            // .NET Standard 2.0 和旧版本
+#pragma warning disable SYSLIB0021
+            _desProvider = new DESCryptoServiceProvider();
+#pragma warning restore SYSLIB0021
+#endif
+            _desProvider.Mode = cipherMode;
+            _desProvider.Padding = paddingMode;
             _cipherMode = cipherMode;
             _paddingMode = paddingMode;
             GenerateKeyIV();
@@ -50,7 +60,6 @@ namespace QingYi.Core.Crypto
             using (var encryptor = _desProvider.CreateEncryptor())
             using (var ms = new MemoryStream())
             {
-                // 使用兼容.NET Standard 2.0的CryptoStream构造函数
                 using (var cs = new CryptoStream(ms, encryptor, CryptoStreamMode.Write))
                 {
                     cs.Write(plainData, 0, plainData.Length);
@@ -82,51 +91,38 @@ namespace QingYi.Core.Crypto
         public void Encrypt(Stream input, Stream output)
         {
             using (var encryptor = _desProvider.CreateEncryptor())
+            using (var cryptoStream = new CryptoStream(output, encryptor, CryptoStreamMode.Write))
             {
-                // 兼容.NET Standard 2.0的流处理方式
-                using (var cryptoStream = new CryptoStream(output, encryptor, CryptoStreamMode.Write))
-                {
-                    input.CopyTo(cryptoStream);
-                }
-
-                // 确保所有数据都刷新到输出流
-                output.Flush();
+                input.CopyTo(cryptoStream);
+                cryptoStream.FlushFinalBlock();
             }
         }
 
         public void Decrypt(Stream input, Stream output)
         {
             using (var decryptor = _desProvider.CreateDecryptor())
+            using (var cryptoStream = new CryptoStream(input, decryptor, CryptoStreamMode.Read))
             {
-                // 兼容.NET Standard 2.0的流处理方式
-                using (var cryptoStream = new CryptoStream(input, decryptor, CryptoStreamMode.Read))
-                {
-                    cryptoStream.CopyTo(output);
-                }
-
-                // 确保所有数据都刷新到输出流
-                output.Flush();
+                cryptoStream.CopyTo(output);
             }
         }
 
-#if NETSTANDARD2_1_OR_GREATER || NETCOREAPP2_1_OR_GREATER
-        public byte[] Encrypt(ReadOnlySpan<byte> source)
+#if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_0_OR_GREATER
+    public byte[] Encrypt(ReadOnlySpan<byte> source)
+    {
+        using (var encryptor = _desProvider.CreateEncryptor())
         {
-            using (var encryptor = _desProvider.CreateEncryptor())
-            {
-                // 使用TransformFinalBlock处理整个数据块
-                return encryptor.TransformFinalBlock(source.ToArray(), 0, source.Length);
-            }
+            return encryptor.TransformFinalBlock(source.ToArray(), 0, source.Length);
         }
+    }
 
-        public byte[] Decrypt(ReadOnlySpan<byte> source)
+    public byte[] Decrypt(ReadOnlySpan<byte> source)
+    {
+        using (var decryptor = _desProvider.CreateDecryptor())
         {
-            using (var decryptor = _desProvider.CreateDecryptor())
-            {
-                // 使用TransformFinalBlock处理整个数据块
-                return decryptor.TransformFinalBlock(source.ToArray(), 0, source.Length);
-            }
+            return decryptor.TransformFinalBlock(source.ToArray(), 0, source.Length);
         }
+    }
 #endif
 
         public void Dispose()
@@ -142,10 +138,10 @@ namespace QingYi.Core.Crypto
         }
     }
 
-    public static class CryptoHelper
+    public static class DESCryptoHelper
     {
         // 静态使用方式 - 字节数组
-        public static byte[] DESEncrypt(byte[] data, byte[] key, byte[] iv)
+        public static byte[] Encrypt(byte[] data, byte[] key, byte[] iv)
         {
             using (var des = new DESCrypto())
             {
@@ -155,7 +151,7 @@ namespace QingYi.Core.Crypto
             }
         }
 
-        public static byte[] DESDecrypt(byte[] data, byte[] key, byte[] iv)
+        public static byte[] Decrypt(byte[] data, byte[] key, byte[] iv)
         {
             using (var des = new DESCrypto())
             {
@@ -166,7 +162,7 @@ namespace QingYi.Core.Crypto
         }
 
         // 静态使用方式 - 流操作
-        public static void DESEncrypt(Stream input, Stream output, byte[] key, byte[] iv)
+        public static void Encrypt(Stream input, Stream output, byte[] key, byte[] iv)
         {
             using (var des = new DESCrypto())
             {
@@ -176,7 +172,7 @@ namespace QingYi.Core.Crypto
             }
         }
 
-        public static void DESDecrypt(Stream input, Stream output, byte[] key, byte[] iv)
+        public static void Decrypt(Stream input, Stream output, byte[] key, byte[] iv)
         {
             using (var des = new DESCrypto())
             {
@@ -186,27 +182,26 @@ namespace QingYi.Core.Crypto
             }
         }
 
-        // 条件编译支持Span
-#if NETSTANDARD2_1_OR_GREATER || NETCOREAPP2_1_OR_GREATER
-        public static byte[] DESEncrypt(ReadOnlySpan<byte> data, byte[] key, byte[] iv)
+#if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_0_OR_GREATER
+    public static byte[] Encrypt(ReadOnlySpan<byte> data, byte[] key, byte[] iv)
+    {
+        using (var des = new DESCrypto())
         {
-            using (var des = new DESCrypto())
-            {
-                des.Key = key;
-                des.IV = iv;
-                return des.Encrypt(data);
-            }
+            des.Key = key;
+            des.IV = iv;
+            return des.Encrypt(data);
         }
+    }
 
-        public static byte[] DESDecrypt(ReadOnlySpan<byte> data, byte[] key, byte[] iv)
+    public static byte[] Decrypt(ReadOnlySpan<byte> data, byte[] key, byte[] iv)
+    {
+        using (var des = new DESCrypto())
         {
-            using (var des = new DESCrypto())
-            {
-                des.Key = key;
-                des.IV = iv;
-                return des.Decrypt(data);
-            }
+            des.Key = key;
+            des.IV = iv;
+            return des.Decrypt(data);
         }
+    }
 #endif
     }
 }
