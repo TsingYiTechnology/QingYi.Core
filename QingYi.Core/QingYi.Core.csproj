@@ -146,6 +146,8 @@
 
 	<ItemGroup>
 		<None Remove="Compression\PPMd_EN.md" />
+		<None Remove="Crypto\AESCrypto_CN.md" />
+		<None Remove="Crypto\AESCrypto_EN.md" />
 		<None Remove="Crypto\DESCrypto_CN.md" />
 		<None Remove="Crypto\DESCrypto_EN.md" />
 		<None Remove="Crypto\TripleDESCrypto_CN.md" />
@@ -159,6 +161,8 @@
 
 	<ItemGroup>
 		<Content Include="Compression\PPMd_EN.md" />
+		<Content Include="Crypto\AESCrypto_CN.md" />
+		<Content Include="Crypto\AESCrypto_EN.md" />
 		<Content Include="Crypto\DESCrypto_CN.md" />
 		<Content Include="Crypto\DESCrypto_EN.md" />
 		<Content Include="Crypto\TripleDESCrypto_CN.md" />
