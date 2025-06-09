@@ -1,4 +1,4 @@
-﻿using QingYi.Core.Crypto;
+using QingYi.Core.Crypto;
 using System.Text;
 
 namespace CryptoTest
