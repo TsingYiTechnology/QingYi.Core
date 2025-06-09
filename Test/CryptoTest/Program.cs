@@ -11,7 +11,10 @@ namespace CryptoTest
             byte[] bytes = Encoding.UTF8.GetBytes(input);
             byte[] desKey = Encoding.UTF8.GetBytes("12345678"); // 8 bytes for DES key
             byte[] desIv = Encoding.UTF8.GetBytes("12345678"); // 8 bytes for DES IV
+            byte[] aesKey = Encoding.UTF8.GetBytes("1234567890abcdef");
+            byte[] aesIv = Encoding.UTF8.GetBytes("1234567890abcdef");
 
+            #region DES
             if (Encoding.UTF8.GetString(DESCryptoHelper.Decrypt(DESCryptoHelper.Encrypt(bytes, desKey, desIv), desKey, desIv)) == input)
             {
                 Console.WriteLine("DES encryption and decryption successful!");
@@ -20,6 +23,18 @@ namespace CryptoTest
             {
                 Console.WriteLine($"DES encryption and decryption failed! Out: {Encoding.UTF8.GetString(DESCryptoHelper.Decrypt(DESCryptoHelper.Encrypt(bytes, desKey, desIv), desKey, desIv))}");
             }
+            #endregion
+
+            #region AES
+            if (Encoding.UTF8.GetString(AESCryptoHelper.Decrypt(AESCryptoHelper.Encrypt(bytes, aesKey, aesIv), aesKey, aesIv)) == input)
+            {
+                Console.WriteLine("AES encryption and decryption successful!");
+            }
+            else
+            {
+                Console.WriteLine($"AES encryption and decryption failed! Out: {Encoding.UTF8.GetString(AESCryptoHelper.Decrypt(AESCryptoHelper.Encrypt(bytes, aesKey, aesIv), aesKey, aesIv))}");
+            }
+            #endregion
         }
     }
 }
