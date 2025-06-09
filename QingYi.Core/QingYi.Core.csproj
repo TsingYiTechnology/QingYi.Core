@@ -148,6 +148,8 @@
 		<None Remove="Compression\PPMd_EN.md" />
 		<None Remove="Crypto\DESCrypto_CN.md" />
 		<None Remove="Crypto\DESCrypto_EN.md" />
+		<None Remove="Crypto\TripleDESCrypto_CN.md" />
+		<None Remove="Crypto\TripleDESCrypto_EN.md" />
 		<None Remove="FileUtility\IO\FileWriter_CN.md" />
 		<None Remove="icon.png" />
 		<None Remove="readme.md" />
@@ -159,6 +161,8 @@
 		<Content Include="Compression\PPMd_EN.md" />
 		<Content Include="Crypto\DESCrypto_CN.md" />
 		<Content Include="Crypto\DESCrypto_EN.md" />
+		<Content Include="Crypto\TripleDESCrypto_CN.md" />
+		<Content Include="Crypto\TripleDESCrypto_EN.md" />
 		<Content Include="FileUtility\IO\FileWriter_CN.md" />
 		<Content Include="icon.png">
 			<Pack>True</Pack>
