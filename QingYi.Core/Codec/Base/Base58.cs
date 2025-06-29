@@ -4,29 +4,22 @@ using System;
 namespace QingYi.Core.Codec.Base
 {
     /// <summary>
-    /// Provides Base58 encoding and decoding functionality
+    /// Base58 codec library.<br />
+    /// Base58 编解码库。
     /// </summary>
     public unsafe class Base58
     {
-        // Base58 character set (excludes similar looking characters: 0, O, I, l)
         private const string Base58Chars = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
-        // Lookup table for character to value mapping
         private static readonly int[] Alphabet = new int[256];
-        // Flag indicating if the alphabet has been initialized
         private static readonly bool AlphabetInitialized;
 
-        /// <summary>
-        /// Static constructor initializes the alphabet lookup table
-        /// </summary>
         static Base58()
         {
             if (AlphabetInitialized) return;
 
-            // Initialize all entries as invalid (-1)
             for (int i = 0; i < Alphabet.Length; i++)
                 Alphabet[i] = -1;
 
-            // Populate valid Base58 characters
             for (int i = 0; i < Base58Chars.Length; i++)
                 Alphabet[Base58Chars[i]] = i;
 
@@ -34,18 +27,19 @@ namespace QingYi.Core.Codec.Base
         }
 
         /// <summary>
-        /// Gets the Base58 character set used for encoding
+        /// Gets the base58-encoded character set.<br />
+        /// 获取 Base58 编码的字符集。
         /// </summary>
-        /// <returns>The Base58 character set string</returns>
+        /// <returns>The base58-encoded character set.<br />Base58 编码的字符集</returns>
         public override string ToString() => Base58Chars;
 
         /// <summary>
-        /// Encodes a string to Base58 using the specified text encoding
+        /// Base58 encoding of the string.<br />
+        /// 将字符串进行Base58编码。
         /// </summary>
-        /// <param name="input">String to encode</param>
-        /// <param name="encoding">Text encoding to use (default: UTF-8)</param>
-        /// <returns>Base58 encoded string</returns>
-        /// <exception cref="ArgumentNullException">Thrown when input is null</exception>
+        /// <param name="input">The string to be converted.<br />需要转换的字符串</param>
+        /// <param name="encoding">The encoding of the string.<br />字符串的编码方式</param>
+        /// <returns>The encoded string.<br />被编码的字符串</returns>
         public static string Encode(string input, StringEncoding encoding = StringEncoding.UTF8)
         {
             if (input == null) throw new ArgumentNullException(nameof(input));
@@ -54,12 +48,12 @@ namespace QingYi.Core.Codec.Base
         }
 
         /// <summary>
-        /// Decodes a Base58 string to text using the specified encoding
+        /// Base58 decoding of the string.<br />
+        /// 将字符串进行Base58解码。
         /// </summary>
-        /// <param name="input">Base58 encoded string</param>
-        /// <param name="encoding">Text encoding to use (default: UTF-8)</param>
-        /// <returns>Decoded string</returns>
-        /// <exception cref="ArgumentNullException">Thrown when input is null</exception>
+        /// <param name="input">The string to be converted.<br />需要转换的字符串</param>
+        /// <param name="encoding">The encoding of the string.<br />字符串的编码方式</param>
+        /// <returns>The decoded string.<br />被解码的字符串</returns>
         public static string Decode(string input, StringEncoding encoding = StringEncoding.UTF8)
         {
             if (input == null) throw new ArgumentNullException(nameof(input));
@@ -67,16 +61,10 @@ namespace QingYi.Core.Codec.Base
             return GetString(bytes, encoding);
         }
 
-        /// <summary>
-        /// Encodes binary data to a Base58 string
-        /// </summary>
-        /// <param name="input">Binary data to encode</param>
-        /// <returns>Base58 encoded string</returns>
         internal static unsafe string Encode(byte[] input)
         {
             if (input.Length == 0) return string.Empty;
 
-            // Count leading zero bytes (will be represented as leading '1's)
             int leadingZeros = 0;
             while (leadingZeros < input.Length && input[leadingZeros] == 0)
                 leadingZeros++;
@@ -84,19 +72,16 @@ namespace QingYi.Core.Codec.Base
             fixed (byte* inputPtr = input)
             {
                 int length = input.Length;
-                // Calculate output buffer size (log58(256) ≈ 1.38)
                 int count = (length - leadingZeros) * 138 / 100 + 1;
                 byte[] temp = new byte[count];
                 int outputIndex = count;
 
                 fixed (byte* tempPtr = temp)
                 {
-                    // Process each byte (except leading zeros)
                     for (int i = leadingZeros; i < length; i++)
                     {
                         int carry = inputPtr[i];
                         int j = count - 1;
-                        // Convert to Base58 by repeated division
                         while (carry != 0 || j >= outputIndex)
                         {
                             carry += tempPtr[j] << 8;
@@ -108,19 +93,14 @@ namespace QingYi.Core.Codec.Base
                     }
                 }
 
-                // Skip leading zeros in the temporary buffer
                 int startIndex = outputIndex;
                 while (startIndex < count && temp[startIndex] == 0)
                     startIndex++;
 
-                // Allocate result buffer (leading '1's + converted bytes)
                 char* resultPtr = stackalloc char[leadingZeros + (count - startIndex)];
-
-                // Add leading '1's for leading zeros
                 for (int i = 0; i < leadingZeros; i++)
                     resultPtr[i] = '1';
 
-                // Add converted bytes
                 for (int i = leadingZeros; i < leadingZeros + count - startIndex; i++)
                     resultPtr[i] = Base58Chars[temp[startIndex + i - leadingZeros]];
 
@@ -128,17 +108,10 @@ namespace QingYi.Core.Codec.Base
             }
         }
 
-        /// <summary>
-        /// Decodes a Base58 string to binary data
-        /// </summary>
-        /// <param name="input">Base58 encoded string</param>
-        /// <returns>Decoded binary data</returns>
-        /// <exception cref="FormatException">Thrown for invalid Base58 characters</exception>
         internal static unsafe byte[] DecodeToBytes(string input)
         {
             if (input.Length == 0) return Array.Empty<byte>();
 
-            // Count leading '1's (representing leading zero bytes)
             int leadingOnes = 0;
             while (leadingOnes < input.Length && input[leadingOnes] == '1')
                 leadingOnes++;
@@ -148,7 +121,6 @@ namespace QingYi.Core.Codec.Base
                 int length = input.Length;
                 byte[] indices = new byte[length - leadingOnes];
 
-                // Convert characters to their numerical values
                 for (int i = leadingOnes; i < length; i++)
                 {
                     char c = inputPtr[i];
@@ -158,19 +130,16 @@ namespace QingYi.Core.Codec.Base
                     indices[i - leadingOnes] = (byte)value;
                 }
 
-                // Calculate output buffer size (log256(58) ≈ 0.733)
                 int count = (length - leadingOnes) * 733 / 1000 + 1;
                 byte[] temp = new byte[count];
                 int outputIndex = count;
 
                 fixed (byte* indicesPtr = indices, tempPtr = temp)
                 {
-                    // Process each Base58 digit
                     for (int i = 0; i < indices.Length; i++)
                     {
                         int carry = indicesPtr[i];
                         int j = count - 1;
-                        // Convert back to bytes by repeated multiplication
                         while (carry != 0 || j >= outputIndex)
                         {
                             carry += tempPtr[j] * 58;
@@ -182,30 +151,19 @@ namespace QingYi.Core.Codec.Base
                     }
                 }
 
-                // Skip leading zeros in the temporary buffer
                 int startIndex = outputIndex;
                 while (startIndex < count && temp[startIndex] == 0)
                     startIndex++;
 
-                // Prepare final result (leading zeros + converted bytes)
                 byte[] result = new byte[leadingOnes + (count - startIndex)];
-
-                // Set leading zeros
                 for (int i = 0; i < leadingOnes; i++)
                     result[i] = 0;
 
-                // Copy converted bytes
                 Buffer.BlockCopy(temp, startIndex, result, leadingOnes, count - startIndex);
                 return result;
             }
         }
 
-        /// <summary>
-        /// Gets the encoding object for the specified encoding type
-        /// </summary>
-        /// <param name="encoding">Encoding type</param>
-        /// <returns>Encoding object</returns>
-        /// <exception cref="ArgumentOutOfRangeException">Thrown for unsupported encoding types</exception>
         private static Encoding GetEncoding(StringEncoding encoding)
         {
             switch (encoding)
@@ -233,50 +191,49 @@ namespace QingYi.Core.Codec.Base
             }
         }
 
-        /// <summary>
-        /// Converts string to bytes using specified encoding
-        /// </summary>
         private static byte[] GetBytes(string input, StringEncoding encoding) => GetEncoding(encoding).GetBytes(input);
 
-        /// <summary>
-        /// Converts bytes to string using specified encoding
-        /// </summary>
         private static string GetString(byte[] bytes, StringEncoding encoding) => GetEncoding(encoding).GetString(bytes);
     }
 
     /// <summary>
-    /// Provides extension methods for Base58 encoding/decoding
+    /// Static string extension of Base62 codec library.<br />
+    /// Base58 编解码库的静态字符串拓展。
     /// </summary>
     public static class Base58Extension
     {
         /// <summary>
-        /// Encodes a string to Base58 using the specified text encoding
+        /// Base58 encoding of the string.<br />
+        /// 将字符串进行Base58编码。
         /// </summary>
-        /// <param name="input">String to encode</param>
-        /// <param name="encoding">Text encoding to use (default: UTF-8)</param>
-        /// <returns>Base58 encoded string</returns>
+        /// <param name="input">The string to be converted.<br />需要转换的字符串</param>
+        /// <param name="encoding">The encoding of the string.<br />字符串的编码方式</param>
+        /// <returns>The encoded string.<br />被编码的字符串</returns>
         public static string Encode(this string input, StringEncoding encoding = StringEncoding.UTF8) => Base58.Encode(input, encoding);
 
         /// <summary>
-        /// Decodes a Base58 string to text using the specified encoding
+        /// Base58 decoding of the string.<br />
+        /// 将字符串进行Base58解码。
         /// </summary>
-        /// <param name="input">Base58 encoded string</param>
-        /// <param name="encoding">Text encoding to use (default: UTF-8)</param>
-        /// <returns>Decoded string</returns>
+        /// <param name="input">The string to be converted.<br />需要转换的字符串</param>
+        /// <param name="encoding">The encoding of the string.<br />字符串的编码方式</param>
+        /// <returns>The decoded string.<br />被解码的字符串</returns>
         public static string Decode(this string input, StringEncoding encoding = StringEncoding.UTF8) => Base58.Decode(input, encoding);
 
         /// <summary>
-        /// Encodes binary data to a Base58 string
+        /// Base58 encoding of the bytes.<br />
+        /// 将字节数组进行Base58编码。
         /// </summary>
-        /// <param name="input">Binary data to encode</param>
-        /// <returns>Base58 encoded string</returns>
+        /// <param name="input">The bytes to be converted.<br />需要转换的字节数组</param>
+        /// <returns>The encoded string.<br />被编码的字符串</returns>
         public static string Encode(this byte[] input) => Base58.Encode(input);
 
         /// <summary>
-        /// Decodes a Base58 string to binary data
+        /// Base58 decoding of the string.<br />
+        /// 将字符串进行Base58解码。
         /// </summary>
-        /// <param name="input">Base58 encoded string</param>
-        /// <returns>Decoded binary data</returns>
+        /// <param name="input">The string to be converted.<br />需要转换的字符串</param>
+        /// <returns>The decoded bytes.<br />被解码的字节数组</returns>
         public static byte[] Decode(this string input) => Base58.DecodeToBytes(input);
     }
 }

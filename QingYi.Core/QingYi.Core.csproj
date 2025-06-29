@@ -4,7 +4,7 @@
 		<TargetFrameworks>netstandard2.0;netstandard2.1;net5.0;net6.0;net7.0;net8.0;net9.0;net5.0-windows;net6.0-windows;net7.0-windows;net8.0-windows;net9.0-windows;net9.0-browser</TargetFrameworks>
 		<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
 		<Title>QingYi.Core</Title>
-		<Version>5.2.0-pre6plus</Version>
+		<Version>5.2.0-pre6</Version>
 		<Authors>QingYi-Studio</Authors>
 		<Copyright>AGPL-3.0</Copyright>
 		<PackageProjectUrl>https://github.com/QingYi-Studio/QingYi.Core</PackageProjectUrl>
@@ -23,7 +23,13 @@
 		<GenerateDocumentationFile>True</GenerateDocumentationFile>
 		<ProduceReferenceAssembly>True</ProduceReferenceAssembly>
 		<PackageReleaseNotes>
-			- Optimize the document.
+			- Support Base26, Base42, Base52, Base91, Base92, Base94, Base100, Base122, Base128.
+			- Rename "QingYi.Core.String" to "QingYi.Core.Codec".
+			- Support Deflate and LZ77 compression.
+			- Optimize the Base10 encoding and decoding implementation.
+			- Support encryption and decryption-related functions (DES/AES/TripleDES).
+			- Support .NET 5.
+			- Use new icon.
 		</PackageReleaseNotes>
 		<PackageLicenseFile>LICENSE</PackageLicenseFile>
 		<PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
@@ -32,7 +38,7 @@
 		<IncludeSymbols>True</IncludeSymbols>
 		<SymbolPackageFormat>snupkg</SymbolPackageFormat>
 		<AssemblyVersion>5.2.0.16</AssemblyVersion>
-		<FileVersion>5.2.0.24</FileVersion>
+		<FileVersion>5.2.0.23</FileVersion>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|netstandard2.1|AnyCPU'">
@@ -147,7 +153,6 @@
 		<None Remove="Crypto\DESCrypto_EN.md" />
 		<None Remove="Crypto\TripleDESCrypto_CN.md" />
 		<None Remove="Crypto\TripleDESCrypto_EN.md" />
-		<None Remove="FileUtility\IO\FileWriter.md" />
 		<None Remove="FileUtility\IO\FileWriter_CN.md" />
 		<None Remove="icon.png" />
 		<None Remove="readme.md" />
@@ -163,7 +168,6 @@
 		<Content Include="Crypto\DESCrypto_EN.md" />
 		<Content Include="Crypto\TripleDESCrypto_CN.md" />
 		<Content Include="Crypto\TripleDESCrypto_EN.md" />
-		<Content Include="FileUtility\IO\FileWriter.md" />
 		<Content Include="FileUtility\IO\FileWriter_CN.md" />
 		<Content Include="icon.png">
 			<Pack>True</Pack>

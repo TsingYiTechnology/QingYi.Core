@@ -5,27 +5,21 @@ using System.Text;
 
 namespace QingYi.Core.Codec.Base
 {
-    /// <summary>
-    /// Provides Base91 encoding and decoding functionality
-    /// </summary>
     public class Base91
     {
         /// <summary>
-        /// Base91 encoding table (standard ASCII 33-126 excluding quotes and backslash)
+        /// Base91字符表（标准ASCII 33-126排除引号和反斜杠）
         /// </summary>
         private const string EncodeTable = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!#$%&()*+,./:;<=>?@[]^_`{|}~";
 
         /// <summary>
-        /// Decoding lookup table (256-element fast lookup)
+        /// 解码映射表（256元素快速查找）
         /// </summary>
         private static readonly sbyte[] DecodeTable = new sbyte[256];
 
-        /// <summary>
-        /// Static constructor initializes the decoding table
-        /// </summary>
         static Base91()
         {
-            // Initialize decode table (invalid characters marked as -1)
+            // 初始化解码表（无效字符为-1）
             Array.Fill(DecodeTable, (sbyte)-1);
             for (sbyte i = 0; i < EncodeTable.Length; i++)
             {
@@ -34,20 +28,9 @@ namespace QingYi.Core.Codec.Base
             }
         }
 
-        #region Encoding Interface
-        /// <summary>
-        /// Encodes binary data to Base91 string
-        /// </summary>
-        /// <param name="data">Binary data to encode</param>
-        /// <returns>Base91 encoded string</returns>
+        #region 编码接口
         public static string Encode(byte[] data) => EncodeCore(data);
 
-        /// <summary>
-        /// Encodes text string to Base91 string
-        /// </summary>
-        /// <param name="text">Text to encode</param>
-        /// <param name="encoding">Text encoding to use (default: UTF8)</param>
-        /// <returns>Base91 encoded string</returns>
         public static string Encode(string text, StringEncoding encoding = StringEncoding.UTF8)
         {
             byte[] data = GetBytes(text, encoding);
@@ -55,20 +38,9 @@ namespace QingYi.Core.Codec.Base
         }
         #endregion
 
-        #region Decoding Interface
-        /// <summary>
-        /// Decodes Base91 string to binary data
-        /// </summary>
-        /// <param name="base91Text">Base91 encoded string</param>
-        /// <returns>Decoded binary data</returns>
+        #region 解码接口
         public static byte[] Decode(string base91Text) => DecodeCore(base91Text);
 
-        /// <summary>
-        /// Decodes Base91 string to text string
-        /// </summary>
-        /// <param name="base91Text">Base91 encoded string</param>
-        /// <param name="encoding">Text encoding to use (default: UTF8)</param>
-        /// <returns>Decoded text string</returns>
         public static string DecodeToString(string base91Text, StringEncoding encoding = StringEncoding.UTF8)
         {
             byte[] data = DecodeCore(base91Text);
@@ -76,19 +48,16 @@ namespace QingYi.Core.Codec.Base
         }
         #endregion
 
-        #region Core Encoding/Decoding Logic
-        /// <summary>
-        /// Core Base91 encoding implementation
-        /// </summary>
+        #region 核心编解码逻辑
         private static unsafe string EncodeCore(byte[] input)
         {
             if (input == null || input.Length == 0) return string.Empty;
 
-            // Pre-allocate output buffer (max length = original length * 1.25)
+            // 预分配输出缓冲区（最大长度 = 原始长度 * 1.25）
             int outputLen = (int)Math.Ceiling(input.Length * 1.25) + 16;
             char[] outputBuffer = new char[outputLen];
             int outIndex = 0;
-            int b = 0, n = 0; // b = accumulator, n = bit counter
+            int b = 0, n = 0;
 
             fixed (byte* inputPtr = input)
             fixed (char* outputPtr = outputBuffer)
@@ -98,43 +67,40 @@ namespace QingYi.Core.Codec.Base
 
                 while (p < end)
                 {
-                    b |= *p << n;  // Accumulate bits
-                    n += 8;         // Count added bits
+                    b |= *p << n;
+                    n += 8;
 
-                    if (n >= 13)    // Enough data to generate two characters
+                    if (n >= 13) // 有足够数据生成两个字符
                     {
-                        int v = b & 0x1FFF; // Take 13 bits
-                        int shift = (v < 0x5F) ? 14 : 13; // Threshold optimization
+                        int v = b & 0x1FFF; // 取13位
+                        int shift = (v < 0x5F) ? 14 : 13; // 阈值优化
                         b >>= shift;
                         n -= shift;
 
-                        // Write two characters (reverse order for efficiency)
+                        // 写入两个字符
                         outputPtr[outIndex++] = EncodeTable[v % 91];
                         outputPtr[outIndex++] = EncodeTable[v / 91];
                     }
                     p++;
                 }
 
-                // Handle remaining data
+                // 处理剩余数据
                 if (n > 0)
                 {
                     outputPtr[outIndex++] = EncodeTable[b % 91];
-                    if (n > 7 || b > 90) // Need second character
+                    if (n > 7 || b > 90)
                         outputPtr[outIndex++] = EncodeTable[b / 91];
                 }
             }
             return new string(outputBuffer, 0, outIndex);
         }
 
-        /// <summary>
-        /// Core Base91 decoding implementation
-        /// </summary>
         private static unsafe byte[] DecodeCore(string input)
         {
             if (string.IsNullOrEmpty(input)) return Array.Empty<byte>();
 
             List<byte> output = new List<byte>(input.Length);
-            int v = -1, b = 0, n = 0; // v = value, b = accumulator, n = bit counter
+            int v = -1, b = 0, n = 0;
 
             fixed (char* inputPtr = input)
             {
@@ -143,7 +109,7 @@ namespace QingYi.Core.Codec.Base
 
                 while (p < end)
                 {
-                    // Skip invalid characters
+                    // 跳过无效字符
                     if (*p < 0 || *p >= 256 || DecodeTable[*p] == -1)
                     {
                         p++;
@@ -153,32 +119,32 @@ namespace QingYi.Core.Codec.Base
                     int digit = DecodeTable[*p];
                     if (v < 0)
                     {
-                        v = digit; // Store first character
+                        v = digit; // 第一个字符暂存
                     }
                     else
                     {
                         v += digit * 91;
-                        int shift = (v & 0x1FFF) > 88 ? 13 : 14; // Dynamic bit selection
+                        int shift = (v & 0x1FFF) > 88 ? 13 : 14; // 动态位选择
                         b |= v << n;
                         n += shift;
 
-                        // Extract complete bytes
+                        // 提取完整字节
                         while (n >= 8)
                         {
                             output.Add((byte)(b & 0xFF));
                             b >>= 8;
                             n -= 8;
                         }
-                        v = -1; // Reset state
+                        v = -1; // 重置状态
                     }
                     p++;
                 }
 
-                // Handle last character if present
+                // 处理最后一个字符
                 if (v > -1)
                 {
                     b |= v << n;
-                    n += 7; // Pad remaining data
+                    n += 7; // 剩余数据补齐
                     while (n > 0)
                     {
                         output.Add((byte)(b & 0xFF));
@@ -191,10 +157,7 @@ namespace QingYi.Core.Codec.Base
         }
         #endregion
 
-        #region Encoding Conversion Helpers
-        /// <summary>
-        /// Converts text to bytes using specified encoding
-        /// </summary>
+        #region 编码转换辅助方法
         private static byte[] GetBytes(string text, StringEncoding encoding)
         {
             return encoding switch
@@ -209,13 +172,10 @@ namespace QingYi.Core.Codec.Base
 #if NET6_0_OR_GREATER
                 StringEncoding.Latin1 => Encoding.Latin1.GetBytes(text),
 #endif
-                _ => Encoding.UTF8.GetBytes(text) // Default to UTF-8
+                _ => Encoding.UTF8.GetBytes(text) // 默认UTF-8
             };
         }
 
-        /// <summary>
-        /// Converts bytes to text using specified encoding
-        /// </summary>
         private static string GetString(byte[] data, StringEncoding encoding)
         {
             return encoding switch
@@ -230,7 +190,7 @@ namespace QingYi.Core.Codec.Base
 #if NET6_0_OR_GREATER
                 StringEncoding.Latin1 => Encoding.Latin1.GetString(data),
 #endif
-                _ => Encoding.UTF8.GetString(data) // Default to UTF-8
+                _ => Encoding.UTF8.GetString(data) // 默认UTF-8
             };
         }
         #endregion

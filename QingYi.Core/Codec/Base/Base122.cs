@@ -7,21 +7,17 @@ using System.Text;
 namespace QingYi.Core.Codec.Base
 {
     /// <summary>
-    /// Provides Base122 encoding and decoding functionality.
+    /// Base122编解码器
     /// </summary>
-    /// <remarks>
-    /// Base122 is a binary-to-text encoding scheme that uses 122 different characters
-    /// to represent binary data in a more compact form than Base64.
-    /// </remarks>
     public sealed class Base122
     {
         /// <summary>
-        /// Specifies the variant of Base122 encoding.
+        /// Base122变体
         /// </summary>
         public enum Variant
         {
             /// <summary>
-            /// Standard Base122 encoding as originally specified.
+            /// 标准Base122编码
             /// </summary>
             Standard
         }
@@ -39,12 +35,12 @@ namespace QingYi.Core.Codec.Base
             DecodingTable = new Dictionary<char, byte>(122);
 
             int index = 0;
-            // Add characters from U+0080 to U+00FF range (skipping control and special characters)
+            // 添加U+0080到U+00FF范围的字符（跳过控制字符和特殊字符）
             for (int i = 0x80; i <= 0xFF; i++)
             {
                 char c = (char)i;
 
-                // Skip control characters and problematic characters
+                // 跳过控制字符和问题字符
                 if (IsValidBase122Char(c))
                 {
                     EncodingTable[index] = c;
@@ -53,7 +49,7 @@ namespace QingYi.Core.Codec.Base
                 }
             }
 
-            // Add supplementary characters
+            // 添加补充字符
             char[] supplementaryChars = {
             '\u2500', '\u2501', '\u2502', '\u2503', '\u2504', '\u2505',
             '\u2506', '\u2507', '\u2508', '\u2509', '\u250A', '\u250B'
@@ -72,29 +68,23 @@ namespace QingYi.Core.Codec.Base
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static bool IsValidBase122Char(char c)
         {
-            // Skip control characters, double quotes and backslashes
+            // 跳过控制字符、双引号和反斜杠
             return !char.IsControl(c) && c != '"' && c != '\\';
         }
 
         /// <summary>
-        /// Returns the character set used for Base122 encoding.
+        /// 获取Base122字符集
         /// </summary>
-        /// <returns>A string containing all 122 characters used in the encoding.</returns>
         public override string ToString() => new string(EncodingTable);
 
         /// <summary>
-        /// Encodes a byte array into a Base122 string using the standard variant.
+        /// 编码字节数组为Base122字符串
         /// </summary>
-        /// <param name="input">The byte array to encode.</param>
-        /// <returns>The Base122 encoded string.</returns>
         public static string Encode(byte[] input) => Encode(input, Variant.Standard);
 
         /// <summary>
-        /// Encodes a byte array into a Base122 string using the specified variant.
+        /// 编码字节数组为Base122字符串（指定变体）
         /// </summary>
-        /// <param name="input">The byte array to encode.</param>
-        /// <param name="variant">The encoding variant to use.</param>
-        /// <returns>The Base122 encoded string.</returns>
         public static unsafe string Encode(byte[] input, Variant variant)
         {
             if (input == null) throw new ArgumentNullException(nameof(input));
@@ -134,13 +124,13 @@ namespace QingYi.Core.Codec.Base
         {
             ulong block = 0;
 
-            // Load 7 bytes as a 56-bit integer (big-endian)
+            // 将7字节加载为56位整数（大端序）
             for (int i = 0; i < BLOCK_BYTES; i++)
             {
                 block = (block << 8) | input[i];
             }
 
-            // Extract eight 7-bit groups
+            // 提取8个7位组
             for (int i = 0; i < BLOCK_CHARS; i++)
             {
                 int shift = BLOCK_BITS - (i + 1) * 7;
@@ -150,27 +140,19 @@ namespace QingYi.Core.Codec.Base
         }
 
         /// <summary>
-        /// Encodes a string into a Base122 string using the specified text encoding.
+        /// 编码字符串为Base122字符串
         /// </summary>
-        /// <param name="input">The string to encode.</param>
-        /// <param name="encoding">The text encoding to use for converting the string to bytes.</param>
-        /// <returns>The Base122 encoded string.</returns>
         public static string Encode(string input, StringEncoding encoding) =>
             Encode(GetBytes(input, encoding));
 
         /// <summary>
-        /// Decodes a Base122 string into a byte array using the standard variant.
+        /// 解码Base122字符串为字节数组
         /// </summary>
-        /// <param name="input">The Base122 string to decode.</param>
-        /// <returns>The decoded byte array.</returns>
         public static byte[] Decode(string input) => Decode(input, Variant.Standard);
 
         /// <summary>
-        /// Decodes a Base122 string into a byte array using the specified variant.
+        /// 解码Base122字符串为字节数组（指定变体）
         /// </summary>
-        /// <param name="input">The Base122 string to decode.</param>
-        /// <param name="variant">The decoding variant to use.</param>
-        /// <returns>The decoded byte array.</returns>
         public static unsafe byte[] Decode(string input, Variant variant)
         {
             if (input == null) throw new ArgumentNullException(nameof(input));
@@ -212,7 +194,7 @@ namespace QingYi.Core.Codec.Base
                 block = (block << 7) | value;
             }
 
-            // Extract 7 bytes
+            // 提取7个字节
             for (int i = 0; i < BLOCK_BYTES; i++)
             {
                 int shift = BLOCK_BITS - (i + 1) * 8;
@@ -221,11 +203,8 @@ namespace QingYi.Core.Codec.Base
         }
 
         /// <summary>
-        /// Decodes a Base122 string into the original string using the specified text encoding.
+        /// 解码Base122字符串为原始字符串
         /// </summary>
-        /// <param name="input">The Base122 string to decode.</param>
-        /// <param name="encoding">The text encoding to use for converting the bytes to a string.</param>
-        /// <returns>The decoded string.</returns>
         public static string DecodeToString(string input, StringEncoding encoding) =>
             GetString(Decode(input), encoding);
 
@@ -241,9 +220,7 @@ namespace QingYi.Core.Codec.Base
 #if NET6_0_OR_GREATER
                 StringEncoding.Latin1 => Encoding.Latin1.GetBytes(input),
 #endif
-#pragma warning disable SYSLIB0001, CS0618
                 StringEncoding.UTF7 => Encoding.UTF7.GetBytes(input),
-#pragma warning restore SYSLIB0001, CS0618
                 _ => throw new NotSupportedException("Unsupported encoding")
             };
         }
@@ -260,9 +237,7 @@ namespace QingYi.Core.Codec.Base
 #if NET6_0_OR_GREATER
                 StringEncoding.Latin1 => Encoding.Latin1.GetString(bytes),
 #endif
-#pragma warning disable SYSLIB0001, CS0618
                 StringEncoding.UTF7 => Encoding.UTF7.GetString(bytes),
-#pragma warning restore SYSLIB0001, CS0618
                 _ => throw new NotSupportedException("Unsupported encoding")
             };
         }

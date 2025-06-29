@@ -9,36 +9,31 @@ namespace QingYi.Core.Codec.Base
 #if NET6_0_OR_GREATER
 
     /// <summary>
-    /// Provides Base64 encoding and decoding functionality for .NET 6.0 and higher
+    /// 适用于 .NET 6.0 及更高版本的 Base 64 编解码库。<br />
+    /// Base 64 codec library for.NET 6.0 and higher.
     /// </summary>
     public unsafe class Base64
     {
-        // Base64 character set (A-Z, a-z, 0-9, +, /)
         private const string Base64Chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
-        // Reverse lookup table for Base64 decoding
         private static readonly sbyte[] Base64Inv = new sbyte[128];
 
-        // Supported encodings array
         private static readonly Encoding[] Encoders =
         {
             Encoding.UTF8,                          // UTF8
             Encoding.Unicode,                       // UTF16LE
             Encoding.BigEndianUnicode,              // UTF16BE
-            Encoding.ASCII,                         // ASCII
-            Encoding.Latin1,                        // Latin1
-            Encoding.UTF32,                         // UTF32
-            Encoding.UTF7,                          // UTF7
+            Encoding.ASCII,
+            Encoding.Latin1,
+            Encoding.UTF32,
+            Encoding.UTF7,
         };
 
-        /// <summary>
-        /// Static constructor initializes the Base64 decoder
-        /// </summary>
         static Base64()
         {
-            // Register code page encoding provider
+            // 注册代码页编码提供程序
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
 
-            // Initialize encoders array
+            // 初始化编码器数组
             Encoders = new Encoding[]
             {
                 Encoding.UTF8,                          // UTF8
@@ -50,24 +45,26 @@ namespace QingYi.Core.Codec.Base
                 Encoding.UTF7,
             };
 
-            // Initialize Base64 reverse lookup table
+            // 初始化 Base64 反向查找表
             for (int i = 0; i < Base64Inv.Length; i++) Base64Inv[i] = -1;
             for (int i = 0; i < Base64Chars.Length; i++) Base64Inv[Base64Chars[i]] = (sbyte)i;
-            Base64Inv['='] = 0; // Special handling for padding character
+            Base64Inv['='] = 0;
         }
 
         /// <summary>
-        /// Gets the Base64 character set used for encoding
+        /// Gets the base64-encoded character set.<br />
+        /// 获取 Base64 编码的字符集。
         /// </summary>
-        /// <returns>The Base64 character set string</returns>
+        /// <returns>The base64-encoded character set.<br />Base64 编码的字符集</returns>
         public override string ToString() => Base64Chars;
 
         /// <summary>
-        /// Encodes a string to Base64 using the specified text encoding
+        /// 将字符串进行 Base 64 编码。<br />
+        /// Base 64 encoding of the string.
         /// </summary>
-        /// <param name="input">String to encode</param>
-        /// <param name="encoding">Text encoding to use (default: UTF-8)</param>
-        /// <returns>Base64 encoded string</returns>
+        /// <param name="input">输入文本<br />Input text</param>
+        /// <param name="encoding">字符编码标准<br />Character coding standard</param>
+        /// <returns>被编码的字符串<br />Encoded string</returns>
         public static string Encode(string input, StringEncoding encoding = StringEncoding.UTF8)
         {
             if (string.IsNullOrEmpty(input)) return string.Empty;
@@ -77,11 +74,12 @@ namespace QingYi.Core.Codec.Base
         }
 
         /// <summary>
-        /// Decodes a Base64 string to text using the specified encoding
+        /// 将字符串进行 Base 64 编码。<br />
+        /// Base 64 decoding of the string.
         /// </summary>
-        /// <param name="base64">Base64 encoded string</param>
-        /// <param name="encoding">Text encoding to use (default: UTF-8)</param>
-        /// <returns>Decoded string</returns>
+        /// <param name="base64">输入文本<br />Input text</param>
+        /// <param name="encoding">字符编码标准<br />Character coding standard</param>
+        /// <returns>被解码的字符串<br />Decoded string</returns>
         public static string Decode(string base64, StringEncoding encoding = StringEncoding.UTF8)
         {
             if (string.IsNullOrEmpty(base64)) return string.Empty;
@@ -90,15 +88,11 @@ namespace QingYi.Core.Codec.Base
             return GetString(bytes, Encoders[(int)encoding]);
         }
 
-        /// <summary>
-        /// Converts string to bytes using specified encoding (optimized version)
-        /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static byte[] GetBytes(string s, Encoding encoding)
         {
             if (encoding == Encoding.Unicode || encoding == Encoding.BigEndianUnicode)
             {
-                // Optimized path for UTF-16 encodings
                 int byteCount = encoding.GetByteCount(s);
                 byte[] buffer = new byte[byteCount];
                 fixed (char* pChar = s)
@@ -111,9 +105,6 @@ namespace QingYi.Core.Codec.Base
             return encoding.GetBytes(s);
         }
 
-        /// <summary>
-        /// Converts bytes to string using specified encoding (optimized version)
-        /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static string GetString(byte[] bytes, Encoding encoding)
         {
@@ -126,14 +117,15 @@ namespace QingYi.Core.Codec.Base
         }
 
         /// <summary>
-        /// Encodes binary data to a Base64 string
+        /// 将字节数组进行 Base 64 编码。<br />
+        /// Base 64 encoding of the bytes.
         /// </summary>
-        /// <param name="input">Binary data to encode</param>
-        /// <returns>Base64 encoded string</returns>
-        public static unsafe string BytesToBase64(byte[] input)
+        /// <param name="input">输入字节数组<br />Input bytes</param>
+        /// <returns>被编码的字符串<br />Encoded string</returns>
+        public static string BytesToBase64(byte[] input)
         {
             int inputLength = input.Length;
-            int outputLength = (inputLength + 2) / 3 * 4; // Calculate output length
+            int outputLength = (inputLength + 2) / 3 * 4;
             char[] output = new char[outputLength];
 
             fixed (byte* inputPtr = input)
@@ -146,28 +138,23 @@ namespace QingYi.Core.Codec.Base
                 int wholeBlocks = inputLength / 3;
                 int remainingBytes = inputLength % 3;
 
-                // Process complete 3-byte blocks
                 for (int i = 0; i < wholeBlocks; i++)
                 {
-                    // Combine 3 bytes into 24-bit value
                     uint triple = (uint)*src++ << 16;
                     triple |= (uint)*src++ << 8;
                     triple |= *src++;
 
-                    // Split into 4 Base64 characters
                     *dest++ = base64Ptr[triple >> 18 & 0x3F];
                     *dest++ = base64Ptr[triple >> 12 & 0x3F];
                     *dest++ = base64Ptr[triple >> 6 & 0x3F];
                     *dest++ = base64Ptr[triple & 0x3F];
                 }
 
-                // Process remaining bytes (1 or 2)
                 if (remainingBytes > 0)
                 {
                     uint triple = (uint)*src++ << 16;
                     if (remainingBytes > 1) triple |= (uint)*src++ << 8;
 
-                    // Encode remaining bytes with padding
                     *dest++ = base64Ptr[triple >> 18 & 0x3F];
                     *dest++ = base64Ptr[triple >> 12 & 0x3F];
 
@@ -177,10 +164,10 @@ namespace QingYi.Core.Codec.Base
                     }
                     else
                     {
-                        *dest++ = '='; // Add padding
+                        *dest++ = '=';
                     }
 
-                    *dest = '='; // Add padding
+                    *dest = '=';
                 }
             }
 
@@ -188,16 +175,16 @@ namespace QingYi.Core.Codec.Base
         }
 
         /// <summary>
-        /// Decodes a Base64 string to binary data
+        /// 将字符串进行 Base 64 解码。<br />
+        /// Base 64 decoding of the string.
         /// </summary>
-        /// <param name="base64">Base64 encoded string</param>
-        /// <returns>Decoded binary data</returns>
-        public static unsafe byte[] Base64ToBytes(string base64)
+        /// <param name="base64">输入文本<br />Input text</param>
+        /// <returns>被解码的字节数组<br />Decoded bytes</returns>
+        public static byte[] Base64ToBytes(string base64)
         {
             int inputLength = base64.Length;
             if (inputLength == 0) return Array.Empty<byte>();
 
-            // Calculate output length accounting for padding
             int outputLength = inputLength * 3 / 4;
             if (base64[inputLength - 1] == '=') outputLength--;
             if (inputLength >= 2 && base64[inputLength - 2] == '=') outputLength--;
@@ -210,25 +197,21 @@ namespace QingYi.Core.Codec.Base
                 char* src = inputPtr;
                 byte* dest = outputPtr;
 
-                int wholeBlocks = inputLength / 4;
+                int wholeBlocks = inputLength / 4; // 修复此处
                 int remainingBytes = inputLength % 4;
 
-                // Process complete 4-character blocks
                 for (int i = 0; i < wholeBlocks; i++)
                 {
-                    // Combine 4 Base64 characters into 24-bit value
                     uint quad = (uint)Base64Inv[*src++] << 18;
                     quad |= (uint)Base64Inv[*src++] << 12;
                     quad |= (uint)Base64Inv[*src++] << 6;
                     quad |= (uint)Base64Inv[*src++];
 
-                    // Split into 3 bytes
                     *dest++ = (byte)(quad >> 16);
                     *dest++ = (byte)(quad >> 8);
                     *dest++ = (byte)quad;
                 }
 
-                // Process remaining characters (1-3)
                 if (remainingBytes > 0)
                 {
                     uint quad = 0;
@@ -255,44 +238,44 @@ namespace QingYi.Core.Codec.Base
     }
 #else
     /// <summary>
-    /// Provides Base64 encoding and decoding functionality for .NET Standard 2.1
+    /// 适用于.NET Standard 2.1的 Base 64 编解码类。
+    /// Base 64 codec class for.NET Standard 2.1.<br />
     /// </summary>
     public class Base64
     {
-        // Base64 character set
         private static readonly char[] s_base64Chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/".ToCharArray();
-        // Reverse lookup table for Base64 decoding
         private static readonly int[] s_decodeTable = new int[256];
 
-        /// <summary>
-        /// Static constructor initializes the Base64 decoder
-        /// </summary>
         static Base64()
         {
-            // Initialize decode table
             for (int i = 0; i < 256; i++) s_decodeTable[i] = -1;
             for (int i = 0; i < s_base64Chars.Length; i++) s_decodeTable[s_base64Chars[i]] = i;
-            s_decodeTable['='] = 0; // Special handling for padding character
+            s_decodeTable['='] = 0; // 特殊处理填充字符
         }
 
         /// <summary>
-        /// Gets the Base64 character set used for encoding
+        /// Gets the base64-encoded character set.<br />
+        /// 获取 Base64 编码的字符集。
         /// </summary>
-        /// <returns>The Base64 character set string</returns>
+        /// <returns>The base64-encoded character set.<br />Base64 编码的字符集</returns>
         public override string ToString() => "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 
+        // Base64编码（字符串→Base64字符串）
         /// <summary>
-        /// Encodes a string to Base64 using UTF-8 encoding
+        /// 将字符串进行 Base 64 编码。<br />
+        /// Base 64 encoding of the string.
         /// </summary>
-        /// <param name="text">String to encode</param>
-        /// <returns>Base64 encoded string</returns>
+        /// <param name="text">输入文本<br />Input text</param>
+        /// <returns>被编码的字符串<br />Encoded string</returns>
         public static string Encode(string text) => BytesToBase64(Encoding.UTF8.GetBytes(text));
 
+        // Base64编码（字节数组→Base64字符串）
         /// <summary>
-        /// Encodes binary data to a Base64 string
+        /// 将字节数组进行 Base 64 编码。<br />
+        /// Base 64 encoding of the bytes.
         /// </summary>
-        /// <param name="bytes">Binary data to encode</param>
-        /// <returns>Base64 encoded string</returns>
+        /// <param name="bytes">输入字节数组<br />Input bytes</param>
+        /// <returns>被编码的字符串<br />Encoded string</returns>
         public static unsafe string BytesToBase64(byte[] bytes)
         {
             int inputLength = bytes.Length;
@@ -306,7 +289,7 @@ namespace QingYi.Core.Codec.Base
                 char* outPtr = outputPtr;
                 int remaining = inputLength;
 
-                // Process complete 3-byte blocks
+                // 处理完整3字节组
                 while (remaining >= 3)
                 {
                     uint value = (uint)*inPtr++ << 16;
@@ -320,7 +303,7 @@ namespace QingYi.Core.Codec.Base
                     remaining -= 3;
                 }
 
-                // Process remaining bytes (1 or 2)
+                // 处理剩余字节
                 if (remaining > 0)
                 {
                     uint value = (uint)*inPtr++ << 16;
@@ -336,18 +319,22 @@ namespace QingYi.Core.Codec.Base
             return new string(output);
         }
 
+        // Base64解码（Base64字符串→字符串）
         /// <summary>
-        /// Decodes a Base64 string to text using UTF-8 encoding
+        /// 将字符串进行 Base 64 编码。<br />
+        /// Base 64 decoding of the string.
         /// </summary>
-        /// <param name="base64Text">Base64 encoded string</param>
-        /// <returns>Decoded string</returns>
+        /// <param name="base64Text">输入文本<br />Input text</param>
+        /// <returns>被解码的字符串<br />Decoded string</returns>
         public static string Decode(string base64Text) => Encoding.UTF8.GetString(Base64ToBytes(base64Text));
 
+        // Base64解码（Base64字符串→字节数组）
         /// <summary>
-        /// Decodes a Base64 string to binary data
+        /// 将字符串进行 Base 64 解码。<br />
+        /// Base 64 decoding of the string.
         /// </summary>
-        /// <param name="base64Text">Base64 encoded string</param>
-        /// <returns>Decoded binary data</returns>
+        /// <param name="base64Text">输入文本<br />Input text</param>
+        /// <returns>被解码的字节数组<br />Decoded bytes</returns>
         public static unsafe byte[] Base64ToBytes(string base64Text)
         {
             int inputLength = base64Text.Length;
@@ -356,7 +343,7 @@ namespace QingYi.Core.Codec.Base
             int padding = 0;
             bool hasPadding = false;
 
-            // Pre-process: filter invalid characters and validate format
+            // 预处理：过滤无效字符并验证格式
             fixed (char* inputPtr = base64Text)
             {
                 char* ptr = inputPtr;
@@ -377,11 +364,11 @@ namespace QingYi.Core.Codec.Base
                 }
             }
 
-            // Validate length and padding
+            // 验证长度和填充
             if (cleanLength % 4 != 0) throw new FormatException("Invalid base64 length");
             if (padding > 2) throw new FormatException("Too many padding characters");
 
-            // Calculate output length
+            // 计算输出长度
             int outputLength = cleanLength * 3 / 4 - padding;
             byte[] output = new byte[outputLength];
 
@@ -392,7 +379,7 @@ namespace QingYi.Core.Codec.Base
                 byte* outPtr = outputPtr;
                 int remaining = cleanLength;
 
-                // Process complete 4-character blocks
+                // 处理完整4字符组
                 while (remaining >= 4)
                 {
                     int a = s_decodeTable[*inPtr++];
@@ -403,16 +390,16 @@ namespace QingYi.Core.Codec.Base
                     uint value = (uint)a << 18 | (uint)b << 12 | (uint)c << 6 | (uint)d;
                     *outPtr++ = (byte)(value >> 16);
 
-                    if (*inPtr != '=')  // Non-padding group
+                    if (*inPtr != '=')  // 非填充组
                     {
                         *outPtr++ = (byte)(value >> 8);
                         *outPtr++ = (byte)value;
                     }
-                    else if (remaining == 4 && c == 0)  // 1-byte padding
+                    else if (remaining == 4 && c == 0)  // 1字节填充
                     {
                         if (d != 0) throw new FormatException("Invalid padding");
                     }
-                    else if (remaining == 4)  // 2-byte padding
+                    else if (remaining == 4)  // 2字节填充
                     {
                         *outPtr++ = (byte)(value >> 8);
                     }
@@ -425,55 +412,64 @@ namespace QingYi.Core.Codec.Base
         }
     }
 #endif
-
     /// <summary>
-    /// Provides extension methods for simple Base64 encoding/decoding of strings
+    /// 适用于字符串简易编解码 Base 64 的静态类。<br />
+    /// 使用代码如：<em>string text = "Hello World!".EncodeBase64()</em><br />
+    /// <br />
+    /// Static class for simple string codec Base 64.<br />
+    /// Use code such as: <em>string text = "Hello World!".EncodeBase64()</em>
     /// </summary>
     public static class Base64Extension
     {
 #if NET6_0_OR_GREATER
         /// <summary>
-        /// Encodes a string to Base64 using the specified text encoding
+        /// 将字符串进行 Base 64 编码。<br />
+        /// Base 64 encoding of the string.
         /// </summary>
-        /// <param name="input">String to encode</param>
-        /// <param name="encoding">Text encoding to use (default: UTF-8)</param>
-        /// <returns>Base64 encoded string</returns>
+        /// <param name="input">输入文本<br />Input text</param>
+        /// <param name="encoding">字符编码标准<br />Character coding standard</param>
+        /// <returns>被编码的字符串<br />Encoded string</returns>
         public static string EncodeBase64(this string input, StringEncoding encoding = StringEncoding.UTF8) => Base64.Encode(input, encoding);
 
         /// <summary>
-        /// Decodes a Base64 string to text using the specified encoding
+        /// 将字符串进行 Base 64 编码。<br />
+        /// Base 64 decoding of the string.
         /// </summary>
-        /// <param name="input">Base64 encoded string</param>
-        /// <param name="encoding">Text encoding to use (default: UTF-8)</param>
-        /// <returns>Decoded string</returns>
+        /// <param name="input">输入文本<br />Input text</param>
+        /// <param name="encoding">字符编码标准<br />Character coding standard</param>
+        /// <returns>被解码的字符串<br />Decoded string</returns>
         public static string DecodeBase64(this string input, StringEncoding encoding = StringEncoding.UTF8) => Base64.Decode(input, encoding);
 #else
         /// <summary>
-        /// Encodes a string to Base64 using UTF-8 encoding
+        /// 将字符串进行 Base 64 编码。<br />
+        /// Base 64 encoding of the string.
         /// </summary>
-        /// <param name="input">String to encode</param>
-        /// <returns>Base64 encoded string</returns>
+        /// <param name="input">输入文本<br />Input text</param>
+        /// <returns>被编码的字符串<br />Encoded string</returns>
         public static string EncodeBase64(this string input) => Base64.Encode(input);
 
         /// <summary>
-        /// Decodes a Base64 string to text using UTF-8 encoding
+        /// 将字符串进行 Base 64 编码。<br />
+        /// Base 64 decoding of the string.
         /// </summary>
-        /// <param name="input">Base64 encoded string</param>
-        /// <returns>Decoded string</returns>
+        /// <param name="input">输入文本<br />Input text</param>
+        /// <returns>被解码的字符串<br />Decoded string</returns>
         public static string DecodeBase64(this string input) => Base64.Decode(input);
 #endif
         /// <summary>
-        /// Encodes binary data to a Base64 string
+        /// 将字节数组进行 Base 64 编码。<br />
+        /// Base 64 encoding of the bytes.
         /// </summary>
-        /// <param name="bytes">Binary data to encode</param>
-        /// <returns>Base64 encoded string</returns>
+        /// <param name="bytes">输入字节数组<br />Input bytes</param>
+        /// <returns>被编码的字符串<br />Encoded string</returns>
         public static string EncodeBytesToBase64(this byte[] bytes) => Base64.BytesToBase64(bytes);
 
         /// <summary>
-        /// Decodes a Base64 string to binary data
+        /// 将字符串进行 Base 64 解码。<br />
+        /// Base 64 decoding of the string.
         /// </summary>
-        /// <param name="base64">Base64 encoded string</param>
-        /// <returns>Decoded binary data</returns>
+        /// <param name="base64">输入文本<br />Input text</param>
+        /// <returns>被解码的字节数组<br />Decoded bytes</returns>
         public static byte[] DecodeBase64ToBytes(this string base64) => Base64.Base64ToBytes(base64);
     }
 }

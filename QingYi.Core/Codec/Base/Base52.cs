@@ -5,37 +5,26 @@ using System.Text;
 
 namespace QingYi.Core.Codec.Base
 {
-    /// <summary>
-    /// Provides Base52 encoding and decoding functionality
-    /// </summary>
     public class Base52
     {
         /// <summary>
-        /// Base52 character set (26 uppercase letters + 26 lowercase letters)
+        /// Base52字符集（26大写字母+26小写字母）
         /// </summary>
         public const string CharacterSet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
-
         /// <summary>
-        /// Padding character used for incomplete blocks
+        /// 填充字符
         /// </summary>
         public const char PaddingChar = '=';
-
-        private const int BlockSize = 5;       // Number of characters per encoded block
-        private const int ByteBlockSize = 3;   // Number of bytes per raw data block
-        private static readonly byte[] CharToIndexMap = new byte[128]; // Character to value mapping
+        private const int BlockSize = 5; // 编码后每组字符数
+        private const int ByteBlockSize = 3; // 原始字节每组大小
+        private static readonly byte[] CharToIndexMap = new byte[128];
         private static readonly bool CharMapInitialized = InitializeCharMap();
 
-        /// <summary>
-        /// Initializes the character to index mapping table
-        /// </summary>
-        /// <returns>Always returns true</returns>
         private static bool InitializeCharMap()
         {
-            // Mark all characters as invalid initially
             for (int i = 0; i < CharToIndexMap.Length; i++)
-                CharToIndexMap[i] = 0xFF;
+                CharToIndexMap[i] = 0xFF; // 标记无效字符
 
-            // Populate valid Base52 characters
             for (byte i = 0; i < CharacterSet.Length; i++)
                 CharToIndexMap[CharacterSet[i]] = i;
 
@@ -43,16 +32,13 @@ namespace QingYi.Core.Codec.Base
         }
 
         /// <summary>
-        /// Returns the Base52 character set
+        /// 重写ToString返回字符集
         /// </summary>
-        /// <returns>The Base52 character set string</returns>
         public override string ToString() => CharacterSet;
 
         /// <summary>
-        /// Encodes binary data to a Base52 string
+        /// 编码字节数组
         /// </summary>
-        /// <param name="data">Binary data to encode</param>
-        /// <returns>Base52 encoded string</returns>
         public unsafe string Encode(byte[] data)
         {
             if (data == null || data.Length == 0)
@@ -62,14 +48,13 @@ namespace QingYi.Core.Codec.Base
             int fullBlocks = length / ByteBlockSize;
             int remainder = length % ByteBlockSize;
 
-            // Calculate output length: (n/3)*5 + (remainder? 2/3/0) + padding
+            // 计算输出长度: (n/3)*5 + (余数? 2/3/0) + 填充
             int outputLength = fullBlocks * BlockSize;
             switch (remainder)
             {
-                case 1: outputLength += 2; break; // 1 byte becomes 2 chars
-                case 2: outputLength += 3; break; // 2 bytes become 3 chars
+                case 1: outputLength += 2; break;
+                case 2: outputLength += 3; break;
             }
-            // Add padding if needed
             int padding = (BlockSize - (outputLength % BlockSize)) % BlockSize;
             outputLength += padding;
 
@@ -81,13 +66,10 @@ namespace QingYi.Core.Codec.Base
                 char* op = outputPtr;
                 byte* ip = inputPtr;
 
-                // Process complete 3-byte blocks
+                // 处理完整3字节块
                 for (int i = 0; i < fullBlocks; i++, ip += 3)
                 {
-                    // Combine 3 bytes into 24-bit value
                     uint value = (uint)(*ip << 16) | (uint)(ip[1] << 8) | ip[2];
-
-                    // Split into 5 Base52 characters (52^4, 52^3, 52^2, 52^1, 52^0)
                     *op++ = charSetPtr[value / 7311616];          // 52^4
                     *op++ = charSetPtr[(value / 140608) % 52];    // 52^3
                     *op++ = charSetPtr[(value / 2704) % 52];      // 52^2
@@ -95,24 +77,22 @@ namespace QingYi.Core.Codec.Base
                     *op++ = charSetPtr[value % 52];
                 }
 
-                // Process remaining bytes (1 or 2 bytes)
+                // 处理剩余字节
                 if (remainder > 0)
                 {
                     uint value = (uint)(*ip << 16);
                     if (remainder == 2) value |= (uint)(ip[1] << 8);
 
-                    // First two characters are always present
                     *op++ = charSetPtr[value / 7311616];
                     *op++ = charSetPtr[(value / 140608) % 52];
 
-                    // Third character for 2-byte remainder
                     if (remainder == 2)
                     {
                         *op++ = charSetPtr[(value / 2704) % 52];
                     }
                 }
 
-                // Add padding characters
+                // 填充
                 for (int i = 0; i < padding; i++)
                     outputPtr[outputLength - 1 - i] = PaddingChar;
             }
@@ -121,19 +101,16 @@ namespace QingYi.Core.Codec.Base
         }
 
         /// <summary>
-        /// Decodes a Base52 string to binary data
+        /// 解码Base52字符串
         /// </summary>
-        /// <param name="encoded">Base52 encoded string</param>
-        /// <returns>Decoded binary data</returns>
-        /// <exception cref="FormatException">Thrown for invalid Base52 strings</exception>
         public unsafe byte[] Decode(string encoded)
         {
             if (string.IsNullOrEmpty(encoded))
                 return Array.Empty<byte>();
 
-            // Validate length is multiple of block size (5)
+            // 验证长度
             if (encoded.Length % BlockSize != 0)
-                throw new FormatException("Base52 string length must be a multiple of 5");
+                throw new FormatException("Base52字符串长度必须是5的倍数");
 
             int length = encoded.Length;
             int padding = CalculatePadding(encoded, length);
@@ -148,24 +125,22 @@ namespace QingYi.Core.Codec.Base
                 byte* op = outputPtr;
                 char* ip = inputPtr;
 
-                // Process complete blocks
+                // 处理完整块
                 for (int i = 0; i < fullBlocks; i++, ip += BlockSize)
                 {
                     uint value = 0;
-                    // Combine 5 characters into 32-bit value
                     for (int j = 0; j < BlockSize; j++)
                     {
                         value *= 52;
                         value += GetCharValue(ip[j]);
                     }
 
-                    // Split into 3 bytes
                     *op++ = (byte)(value >> 16);
                     *op++ = (byte)(value >> 8);
                     *op++ = (byte)value;
                 }
 
-                // Process last (possibly partial) block
+                // 处理最后一块
                 uint lastValue = 0;
                 for (int j = 0; j < lastBlockLength; j++)
                 {
@@ -173,21 +148,20 @@ namespace QingYi.Core.Codec.Base
                     lastValue += GetCharValue(ip[j]);
                 }
 
-                // Extract bytes based on characters in last block
                 switch (lastBlockLength)
                 {
-                    case 5: // Full block (3 bytes)
+                    case 5: // 3字节
                         *op++ = (byte)(lastValue >> 16);
                         *op++ = (byte)(lastValue >> 8);
                         *op++ = (byte)lastValue;
                         break;
 
-                    case 3: // 2 bytes
+                    case 3: // 2字节
                         *op++ = (byte)(lastValue >> 8);
                         *op++ = (byte)lastValue;
                         break;
 
-                    case 2: // 1 byte
+                    case 2: // 1字节
                         *op++ = (byte)lastValue;
                         break;
                 }
@@ -196,42 +170,21 @@ namespace QingYi.Core.Codec.Base
             return output;
         }
 
-        #region String Encoding Overloads
-        /// <summary>
-        /// Encodes a string to Base52 using the specified text encoding
-        /// </summary>
-        /// <param name="text">String to encode</param>
-        /// <param name="encoding">Text encoding to use (default: UTF-8)</param>
-        /// <returns>Base52 encoded string</returns>
+        #region 字符串编解码重载
         public string Encode(string text, StringEncoding encoding = StringEncoding.UTF8)
             => Encode(GetBytes(text, encoding));
 
-        /// <summary>
-        /// Decodes a Base52 string to text using the specified encoding
-        /// </summary>
-        /// <param name="base52">Base52 encoded string</param>
-        /// <param name="encoding">Text encoding to use (default: UTF-8)</param>
-        /// <returns>Decoded string</returns>
         public string Decode(string base52, StringEncoding encoding = StringEncoding.UTF8)
             => GetString(Decode(base52), encoding);
 
-        /// <summary>
-        /// Static method to encode text to Base52
-        /// </summary>
         public static string EncodeText(string text, StringEncoding encoding = StringEncoding.UTF8)
             => new Base52().Encode(text, encoding);
 
-        /// <summary>
-        /// Static method to decode Base52 to text
-        /// </summary>
         public static string DecodeText(string base52, StringEncoding encoding = StringEncoding.UTF8)
             => new Base52().Decode(base52, encoding);
         #endregion
 
-        #region Private Helper Methods
-        /// <summary>
-        /// Calculates the number of padding characters
-        /// </summary>
+        #region 私有辅助方法
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static int CalculatePadding(string encoded, int length)
         {
@@ -239,41 +192,30 @@ namespace QingYi.Core.Codec.Base
             for (int i = length - 1; i >= 0 && encoded[i] == PaddingChar; i--)
                 padding++;
 
-            // Validate padding count (0, 2, or 3)
             if (padding != 0 && padding != 2 && padding != 3)
-                throw new FormatException("Invalid padding format");
+                throw new FormatException("无效的填充格式");
 
             return padding;
         }
 
-        /// <summary>
-        /// Gets the output size in bytes for a given number of characters
-        /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static int GetOutputSize(int charsInBlock)
             => charsInBlock switch
             {
-                5 => 3, // 3 bytes (full block)
-                3 => 2, // 2 bytes
-                2 => 1, // 1 byte
-                _ => throw new FormatException("Invalid character block size")
+                5 => 3, // 3字节
+                3 => 2, // 2字节
+                2 => 1, // 1字节
+                _ => throw new FormatException("无效的字符块大小")
             };
 
-        /// <summary>
-        /// Gets the numerical value of a Base52 character
-        /// </summary>
-        /// <exception cref="FormatException">Thrown for invalid characters</exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static byte GetCharValue(char c)
         {
             if (c >= CharToIndexMap.Length || CharToIndexMap[c] == 0xFF)
-                throw new FormatException($"Invalid character: '{c}'");
+                throw new FormatException($"无效字符: '{c}'");
             return CharToIndexMap[c];
         }
 
-        /// <summary>
-        /// Converts string to bytes using specified encoding
-        /// </summary>
         private static byte[] GetBytes(string text, StringEncoding encoding)
         {
             return encoding switch
@@ -286,16 +228,11 @@ namespace QingYi.Core.Codec.Base
 #if NET6_0_OR_GREATER
                 StringEncoding.Latin1 => Encoding.Latin1.GetBytes(text),
 #endif
-#pragma warning disable SYSLIB0001, CS0618
                 StringEncoding.UTF7 => GetUTF7Bytes(text),
-#pragma warning restore SYSLIB0001, CS0618
                 _ => throw new ArgumentOutOfRangeException(nameof(encoding))
             };
         }
 
-        /// <summary>
-        /// Converts bytes to string using specified encoding
-        /// </summary>
         private static string GetString(byte[] data, StringEncoding encoding)
         {
             return encoding switch
@@ -308,14 +245,11 @@ namespace QingYi.Core.Codec.Base
 #if NET6_0_OR_GREATER
                 StringEncoding.Latin1 => Encoding.Latin1.GetString(data),
 #endif
-#pragma warning disable SYSLIB0001, CS0618
                 StringEncoding.UTF7 => GetUTF7String(data),
-#pragma warning restore SYSLIB0001, CS0618
                 _ => throw new ArgumentOutOfRangeException(nameof(encoding))
             };
         }
 
-        // UTF-7 encoding methods (obsolete in newer .NET versions)
 #pragma warning disable SYSLIB0001, CS0618
         private static byte[] GetUTF7Bytes(string text) => Encoding.UTF7.GetBytes(text);
         private static string GetUTF7String(byte[] data) => Encoding.UTF7.GetString(data);

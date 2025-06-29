@@ -178,7 +178,7 @@ namespace QingYi.Core.Compression.Unsafe
             private int _memorySize;
             private Context* _contexts;
             private int _contextCount;
-            //private byte* _current;
+            private byte* _current;
             private int _allocated;
 
             public PpmdCore(int order, int wordSize, int dictSize, bool useAvx, bool useUnsafe)

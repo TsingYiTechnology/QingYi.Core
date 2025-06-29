@@ -4,13 +4,9 @@ using System;
 namespace QingYi.Core.Codec.Base
 {
     /// <summary>
-    /// Provides Base16 (hexadecimal) encoding and decoding functionality.
+    /// Base16 codec library.<br />
+    /// Base16 编解码库。
     /// </summary>
-    /// <remarks>
-    /// Base16 is a binary-to-text encoding scheme that represents binary data in ASCII format
-    /// using 16 distinct symbols (0-9 and A-F). This implementation supports both uppercase
-    /// and lowercase hexadecimal output.
-    /// </remarks>
     public class Base16
     {
         private static readonly uint[] Lookup32Lower = CreateLookup32('x');
@@ -46,12 +42,12 @@ namespace QingYi.Core.Codec.Base
         }
 
         /// <summary>
-        /// Encodes a string into Base16 format using the specified text encoding.
+        /// Base16 encoding of the string.<br />
+        /// 将字符串进行Base16编码。
         /// </summary>
-        /// <param name="input">The string to encode.</param>
-        /// <param name="encoding">The text encoding to use for string-to-byte conversion (default: UTF-8).</param>
-        /// <returns>The Base16 encoded string.</returns>
-        /// <exception cref="ArgumentNullException">Thrown when input is null.</exception>
+        /// <param name="input">The string to be converted.<br />需要转换的字符串</param>
+        /// <param name="encoding">The encoding of the string.<br />字符串的编码方式</param>
+        /// <returns>The encoded string.<br />被编码的字符串</returns>
         public static string Encode(string input, StringEncoding encoding = StringEncoding.UTF8)
         {
             if (input == null) throw new ArgumentNullException(nameof(input));
@@ -60,12 +56,12 @@ namespace QingYi.Core.Codec.Base
         }
 
         /// <summary>
-        /// Encodes a byte array into Base16 format.
+        /// Base16 encoding of the bytes.<br />
+        /// 将字节数组进行Base16编码。
         /// </summary>
-        /// <param name="bytes">The byte array to encode.</param>
-        /// <param name="lowerCase">Whether to use lowercase letters (a-f) instead of uppercase (A-F).</param>
-        /// <returns>The Base16 encoded string.</returns>
-        /// <exception cref="ArgumentNullException">Thrown when input is null.</exception>
+        /// <param name="bytes">The bytes to be converted.<br />需要转换的字节数组</param>
+        /// <param name="lowerCase">Use lowercase letters<br />使用小写字母</param>
+        /// <returns>The encoded string.<br />被编码的字符串</returns>
         public static string Encode(byte[] bytes, bool lowerCase = false)
         {
             if (bytes == null) throw new ArgumentNullException(nameof(bytes));
@@ -91,25 +87,20 @@ namespace QingYi.Core.Codec.Base
         }
 
         /// <summary>
-        /// Decodes a Base16 string into the original string using the specified text encoding.
+        /// Base16 decoding of the string.<br />
+        /// 将字符串进行Base16解码。
         /// </summary>
-        /// <param name="base16String">The Base16 string to decode.</param>
-        /// <param name="encoding">The text encoding to use for byte-to-string conversion (default: UTF-8).</param>
-        /// <returns>The decoded string.</returns>
-        /// <exception cref="ArgumentNullException">Thrown when input is null.</exception>
-        /// <exception cref="ArgumentException">Thrown when input contains invalid Base16 characters.</exception>
-        public static string Decode(string base16String, StringEncoding encoding = StringEncoding.UTF8) =>
-            GetString(Decode(base16String), encoding);
+        /// <param name="base16String">The string to be converted.<br />需要转换的字符串</param>
+        /// <param name="encoding">The encoding of the string.<br />字符串的编码方式</param>
+        /// <returns>The decoded string.<br />被解码的字符串</returns>
+        public static string Decode(string base16String, StringEncoding encoding = StringEncoding.UTF8) => GetString(Decode(base16String), encoding);
 
         /// <summary>
-        /// Decodes a Base16 string into a byte array.
+        /// Base16 decoding of the string.<br />
+        /// 将字符串进行Base16解码。
         /// </summary>
-        /// <param name="base16String">The Base16 string to decode.</param>
-        /// <returns>The decoded byte array.</returns>
-        /// <exception cref="ArgumentNullException">Thrown when input is null.</exception>
-        /// <exception cref="ArgumentException">
-        /// Thrown when input length is not even or contains invalid Base16 characters.
-        /// </exception>
+        /// <param name="base16String">The string to be converted.<br />需要转换的字符串</param>
+        /// <returns>The decoded bytes.<br />被解码的字节数组</returns>
         public static byte[] Decode(string base16String)
         {
             if (base16String == null) throw new ArgumentNullException(nameof(base16String));
@@ -148,18 +139,10 @@ namespace QingYi.Core.Codec.Base
 
         private static void ThrowInvalidCharacter() => throw new ArgumentException("Invalid Base16 character.");
 
-        private static byte[] GetBytes(string input, StringEncoding encoding) =>
-            GetEncoding(encoding).GetBytes(input);
+        private static byte[] GetBytes(string input, StringEncoding encoding) => GetEncoding(encoding).GetBytes(input);
 
-        private static string GetString(byte[] bytes, StringEncoding encoding) =>
-            GetEncoding(encoding).GetString(bytes);
+        private static string GetString(byte[] bytes, StringEncoding encoding) => GetEncoding(encoding).GetString(bytes);
 
-        /// <summary>
-        /// Gets the System.Text.Encoding instance corresponding to the specified StringEncoding.
-        /// </summary>
-        /// <param name="encoding">The StringEncoding value to convert.</param>
-        /// <returns>The corresponding Encoding instance.</returns>
-        /// <exception cref="NotSupportedException">Thrown when an unsupported encoding is specified.</exception>
         private static Encoding GetEncoding(StringEncoding encoding)
         {
             switch (encoding)
@@ -170,7 +153,7 @@ namespace QingYi.Core.Codec.Base
                 case StringEncoding.ASCII: return Encoding.ASCII;
                 case StringEncoding.UTF32: return Encoding.UTF32;
 #if NET6_0_OR_GREATER
-                case StringEncoding.Latin1: return Encoding.Latin1;
+            case StringEncoding.Latin1: return Encoding.Latin1;
 #endif
 #pragma warning disable CS0618, SYSLIB0001
                 case StringEncoding.UTF7: return Encoding.UTF7;
@@ -181,43 +164,44 @@ namespace QingYi.Core.Codec.Base
     }
 
     /// <summary>
-    /// Provides extension methods for Base16 encoding and decoding operations on strings.
+    /// Static string extension of Base16 codec library.<br />
+    /// Base16 编解码库的静态字符串拓展。
     /// </summary>
     public static class Base16Extension
     {
         /// <summary>
-        /// Encodes a string into Base16 format using the specified text encoding.
+        /// Base16 encoding of the string.<br />
+        /// 将字符串进行Base16编码。
         /// </summary>
-        /// <param name="input">The string to encode.</param>
-        /// <param name="encoding">The text encoding to use for string-to-byte conversion (default: UTF-8).</param>
-        /// <returns>The Base16 encoded string.</returns>
-        public static string EncodeBase16(this string input, StringEncoding encoding = StringEncoding.UTF8) =>
-            Base16.Encode(input, encoding);
+        /// <param name="input">The string to be converted.<br />需要转换的字符串</param>
+        /// <param name="encoding">The encoding of the string.<br />字符串的编码方式</param>
+        /// <returns>The encoded string.<br />被编码的字符串</returns>
+        public static string EncodeBase16(this string input, StringEncoding encoding = StringEncoding.UTF8) => Base16.Encode(input, encoding);
 
         /// <summary>
-        /// Encodes a byte array into Base16 format.
+        /// Base16 encoding of the bytes.<br />
+        /// 将字节数组进行Base16编码。
         /// </summary>
-        /// <param name="bytes">The byte array to encode.</param>
-        /// <param name="lowerCase">Whether to use lowercase letters (a-f) instead of uppercase (A-F).</param>
-        /// <returns>The Base16 encoded string.</returns>
-        public static string EncodeBase16(byte[] bytes, bool lowerCase = false) =>
-            Base16.Encode(bytes, lowerCase);
+        /// <param name="bytes">The bytes to be converted.<br />需要转换的字节数组</param>
+        /// <param name="lowerCase">Use lowercase letters<br />使用小写字母</param>
+        /// <returns>The encoded string.<br />被编码的字符串</returns>
+        public static string EncodeBase16(byte[] bytes, bool lowerCase = false) => Base16.Encode(bytes, lowerCase);
 
         /// <summary>
-        /// Decodes a Base16 string into the original string using the specified text encoding.
+        /// Base16 decoding of the string.<br />
+        /// 将字符串进行Base16解码。
         /// </summary>
-        /// <param name="base16String">The Base16 string to decode.</param>
-        /// <param name="encoding">The text encoding to use for byte-to-string conversion (default: UTF-8).</param>
-        /// <returns>The decoded string.</returns>
-        public static string DecodeBase16(this string base16String, StringEncoding encoding = StringEncoding.UTF8) =>
-            Base16.Decode(base16String, encoding);
+        /// <param name="base16String">The string to be converted.<br />需要转换的字符串</param>
+        /// <param name="encoding">The encoding of the string.<br />字符串的编码方式</param>
+        /// <returns>The decoded string.<br />被解码的字符串</returns>
+        public static string DecodeBase16(this string base16String, StringEncoding encoding = StringEncoding.UTF8) => Base16.Decode(base16String, encoding);
 
         /// <summary>
-        /// Decodes a Base16 string into a byte array.
+        /// Base16 decoding of the string.<br />
+        /// 将字符串进行Base16解码。
         /// </summary>
-        /// <param name="base16String">The Base16 string to decode.</param>
-        /// <returns>The decoded byte array.</returns>
-        public static byte[] DecodeBase16(this string base16String) =>
-            Base16.Decode(base16String);
+        /// <param name="base16String">The string to be converted.<br />需要转换的字符串</param>
+        /// <returns>The decoded bytes.<br />被解码的字节数组</returns>
+        public static byte[] DecodeBase16(this string base16String) => Base16.Decode(base16String);
     }
 }

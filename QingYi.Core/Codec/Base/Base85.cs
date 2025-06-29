@@ -1,4 +1,4 @@
-﻿#if NET5_0_OR_GREATER
+﻿#if NET6_0_OR_GREATER
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -8,13 +8,10 @@ using System.Buffers;
 
 namespace QingYi.Core.Codec.Base
 {
-    /// <summary>
-    /// Enum representing different Base85 encoding variants
-    /// </summary>
     public enum Base85Variant
     {
         /// <summary>
-        /// Standard Ascii85 encoding (RFC 1924)
+        /// Standard Ascii85 (RFC 1924)
         /// </summary>
         Ascii85,
 
@@ -34,12 +31,9 @@ namespace QingYi.Core.Codec.Base
         IPv6
     }
 
-    /// <summary>
-    /// Provides Base85 encoding and decoding functionality for various variants
-    /// </summary>
     public static class Base85
     {
-        // Variant character mapping tables
+        // 变体字符映射表
         private static readonly Dictionary<Base85Variant, char[]> VariantAlphabets = new()
         {
             [Base85Variant.Ascii85] = "!\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstu".ToCharArray(),
@@ -48,7 +42,7 @@ namespace QingYi.Core.Codec.Base
             [Base85Variant.IPv6] = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz!#$%&()*+-;<=>?@^_`{|}~".ToCharArray()
         };
 
-        // Variant-specific special character handling
+        // 变体特殊字符处理
         private static readonly Dictionary<Base85Variant, (char Zero, char Padding, string Prefix, string Suffix)> VariantOptions = new()
         {
             [Base85Variant.Ascii85] = ('z', '~', "<~", "~>"),
@@ -57,15 +51,7 @@ namespace QingYi.Core.Codec.Base
             [Base85Variant.IPv6] = ('\0', '\0', "", "")
         };
 
-        #region Encoding Methods
-        /// <summary>
-        /// Encodes binary data to Base85 string
-        /// </summary>
-        /// <param name="data">Binary data to encode</param>
-        /// <param name="variant">Base85 variant to use (default: Ascii85)</param>
-        /// <returns>Base85 encoded string</returns>
-        /// <exception cref="ArgumentNullException">Thrown when input data is null</exception>
-        /// <exception cref="ArgumentException">Thrown for Z85 variant when input length isn't multiple of 4</exception>
+        #region 编码方法
         public static unsafe string Encode(byte[] data, Base85Variant variant = Base85Variant.Ascii85)
         {
             if (data == null) throw new ArgumentNullException(nameof(data));
@@ -78,7 +64,7 @@ namespace QingYi.Core.Codec.Base
             var suffix = options.Suffix;
             var useZero = options.Zero != '\0';
 
-            // Calculate output length
+            // 计算输出长度
             int blockCount = data.Length / 4;
             int remainingBytes = data.Length % 4;
             int outputLength = prefix.Length +
@@ -86,13 +72,13 @@ namespace QingYi.Core.Codec.Base
                               (remainingBytes > 0 ? 5 : 0) +
                               suffix.Length;
 
-            // Rent character array from array pool
+            // 使用数组池租用字符数组
             char[] outputBuffer = ArrayPool<char>.Shared.Rent(outputLength);
             int charPos = 0;
 
             try
             {
-                // Add prefix
+                // 添加前缀
                 for (int i = 0; i < prefix.Length; i++)
                 {
                     outputBuffer[charPos++] = prefix[i];
@@ -113,7 +99,7 @@ namespace QingYi.Core.Codec.Base
                             continue;
                         }
 
-                        // Convert to big-endian and encode
+                        // 转换为大端序后编码
                         uint block = BitConverter.IsLittleEndian ? ReverseBytes(pUint[i]) : pUint[i];
                         int count = EncodeBlock(block, currentOut, variant);
                         currentOut += count;
@@ -124,14 +110,14 @@ namespace QingYi.Core.Codec.Base
                     {
                         uint lastBlock = 0;
                         byte* pLast = (byte*)pData + blockCount * 4;
-                        // Build remaining block in big-endian order
+                        // 按大端序构建剩余块
                         for (int i = 0; i < remainingBytes; i++)
                         {
                             lastBlock = (lastBlock << 8) | pLast[i];
                         }
                         lastBlock <<= (32 - remainingBytes * 8);
 
-                        // Convert to big-endian and encode
+                        // 转换为大端序后编码
                         if (BitConverter.IsLittleEndian)
                         {
                             lastBlock = ReverseBytes(lastBlock);
@@ -141,7 +127,7 @@ namespace QingYi.Core.Codec.Base
                     }
                 }
 
-                // Add suffix
+                // 添加后缀
                 for (int i = 0; i < suffix.Length; i++)
                 {
                     outputBuffer[charPos++] = suffix[i];
@@ -155,13 +141,6 @@ namespace QingYi.Core.Codec.Base
             }
         }
 
-        /// <summary>
-        /// Encodes text string to Base85 string
-        /// </summary>
-        /// <param name="text">Text to encode</param>
-        /// <param name="encoding">Text encoding to use (default: UTF8)</param>
-        /// <param name="variant">Base85 variant to use (default: Ascii85)</param>
-        /// <returns>Base85 encoded string</returns>
         public static string Encode(string text, StringEncoding encoding = StringEncoding.UTF8, Base85Variant variant = Base85Variant.Ascii85)
         {
             byte[] data = GetBytes(text, encoding);
@@ -169,15 +148,7 @@ namespace QingYi.Core.Codec.Base
         }
         #endregion
 
-        #region Decoding Methods
-        /// <summary>
-        /// Decodes Base85 string to binary data
-        /// </summary>
-        /// <param name="base85">Base85 encoded string</param>
-        /// <param name="variant">Base85 variant to use (default: Ascii85)</param>
-        /// <returns>Decoded binary data</returns>
-        /// <exception cref="ArgumentNullException">Thrown when input string is null</exception>
-        /// <exception cref="FormatException">Thrown for invalid Base85 strings</exception>
+        #region 解码方法
         public static byte[] Decode(string base85, Base85Variant variant = Base85Variant.Ascii85)
         {
             if (base85 == null) throw new ArgumentNullException(nameof(base85));
@@ -187,16 +158,16 @@ namespace QingYi.Core.Codec.Base
             var prefix = options.Prefix;
             var suffix = options.Suffix;
 
-            // Handle prefix/suffix
+            // 处理前缀/后缀
             if (base85.StartsWith(prefix)) base85 = base85[prefix.Length..];
             if (base85.EndsWith(suffix)) base85 = base85[..^suffix.Length];
 
-            // Clean invalid characters
+            // 清理无效字符
             base85 = Regex.Replace(base85, @"\s+", "");
             if (variant == Base85Variant.Z85 && base85.Length % 5 != 0)
                 throw new FormatException("Z85 requires input length to be multiple of 5");
 
-            // Check invalid length (for non-Z85 variants)
+            // 检查无效长度（非Z85变体）
             if (variant != Base85Variant.Z85 && base85.Length % 5 == 1)
                 throw new FormatException("Invalid Base85 string length: last block must not be 1 character");
 
@@ -234,7 +205,7 @@ namespace QingYi.Core.Codec.Base
                     if (remainingChars > 0)
                     {
                         uint lastBlock = DecodeBlock(pBase85 + base85Pos, remainingChars, alphabetMap, variant);
-                        // Extract bytes from big-endian order
+                        // 从大端序高位开始提取字节
                         for (int i = 0; i < remainingChars - 1; i++)
                         {
                             result[outputPos++] = (byte)(lastBlock >> (24 - i * 8));
@@ -246,13 +217,6 @@ namespace QingYi.Core.Codec.Base
             return result;
         }
 
-        /// <summary>
-        /// Decodes Base85 string to text string
-        /// </summary>
-        /// <param name="base85">Base85 encoded string</param>
-        /// <param name="encoding">Text encoding to use (default: UTF8)</param>
-        /// <param name="variant">Base85 variant to use (default: Ascii85)</param>
-        /// <returns>Decoded text string</returns>
         public static string DecodeToString(string base85, StringEncoding encoding = StringEncoding.UTF8, Base85Variant variant = Base85Variant.Ascii85)
         {
             byte[] data = Decode(base85, variant);
@@ -260,17 +224,14 @@ namespace QingYi.Core.Codec.Base
         }
         #endregion
 
-        #region Private Helper Methods
-        /// <summary>
-        /// Encodes a 32-bit block to Base85 characters
-        /// </summary>
+        #region 私有辅助方法
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static unsafe int EncodeBlock(uint value, char* output, Base85Variant variant)
         {
             var alphabet = VariantAlphabets[variant];
-            char* current = output + 4;  // Write from end to beginning
+            char* current = output + 4;  // 从末尾开始写入
 
-            // Manual division implementation
+            // 手动实现除法
             for (int i = 0; i < 5; i++)
             {
                 uint remainder = value % 85;
@@ -281,9 +242,6 @@ namespace QingYi.Core.Codec.Base
             return 5;
         }
 
-        /// <summary>
-        /// Decodes a Base85 character block to 32-bit value
-        /// </summary>
         private static unsafe uint DecodeBlock(char* input, int length, byte[] alphabetMap, Base85Variant variant)
         {
             uint result = 0;
@@ -296,19 +254,16 @@ namespace QingYi.Core.Codec.Base
                 result = result * 85 + alphabetMap[c];
             }
 
-            // Pad remaining portion
+            // 填充剩余部分
             for (int i = length; i < 5; i++)
             {
                 result = result * 85 + 84;
             }
 
-            // Convert to system endianness
+            // 转换为系统字节序
             return BitConverter.IsLittleEndian ? ReverseBytes(result) : result;
         }
 
-        /// <summary>
-        /// Builds a fast lookup table for character mapping
-        /// </summary>
         private static byte[] BuildAlphabetMap(char[] alphabet)
         {
             var map = new byte[256];
@@ -322,9 +277,6 @@ namespace QingYi.Core.Codec.Base
             return map;
         }
 
-        /// <summary>
-        /// Reverses byte order of a 32-bit value
-        /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static uint ReverseBytes(uint value)
         {
@@ -334,9 +286,6 @@ namespace QingYi.Core.Codec.Base
                    (value << 24);
         }
 
-        /// <summary>
-        /// Converts text to bytes using specified encoding
-        /// </summary>
         private static byte[] GetBytes(string text, StringEncoding encoding)
         {
             return encoding switch
@@ -351,13 +300,10 @@ namespace QingYi.Core.Codec.Base
 #if NET6_0_OR_GREATER
                 StringEncoding.Latin1 => Encoding.Latin1.GetBytes(text),
 #endif
-                _ => Encoding.UTF8.GetBytes(text) // UTF8 is default
+                _ => Encoding.UTF8.GetBytes(text) // UTF8 是默认值
             };
         }
 
-        /// <summary>
-        /// Converts bytes to text using specified encoding
-        /// </summary>
         private static string GetString(byte[] data, StringEncoding encoding)
         {
             return encoding switch
@@ -372,30 +318,15 @@ namespace QingYi.Core.Codec.Base
 #if NET6_0_OR_GREATER
                 StringEncoding.Latin1 => Encoding.Latin1.GetString(data),
 #endif
-                _ => Encoding.UTF8.GetString(data) // UTF8 is default
+                _ => Encoding.UTF8.GetString(data) // UTF8 是默认值
             };
         }
         #endregion
 
-        #region Special Variant Methods
-        /// <summary>
-        /// Encodes binary data using Z85 variant
-        /// </summary>
+        #region 特殊变体方法
         public static string EncodeZ85(byte[] data) => Encode(data, Base85Variant.Z85);
-
-        /// <summary>
-        /// Decodes Z85 encoded string to binary data
-        /// </summary>
         public static byte[] DecodeZ85(string base85) => Decode(base85, Base85Variant.Z85);
-
-        /// <summary>
-        /// Encodes binary data using Git variant
-        /// </summary>
         public static string EncodeGit(byte[] data) => Encode(data, Base85Variant.Git);
-
-        /// <summary>
-        /// Decodes Git encoded string to binary data
-        /// </summary>
         public static byte[] DecodeGit(string base85) => Decode(base85, Base85Variant.Git);
         #endregion
     }

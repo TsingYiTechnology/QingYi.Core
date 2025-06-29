@@ -3,36 +3,21 @@ using System.Text;
 
 namespace QingYi.Core.Codec.Base
 {
-    /// <summary>
-    /// Provides Base100 encoding and decoding functionality using emoji characters.
-    /// </summary>
     public class Base100
     {
         /// <summary>
-        /// Gets the complete character set string used for Base100 encoding (256 emoji characters).
+        /// 获取Base100编码使用的完整字符集字符串（256个Emoji字符）
         /// </summary>
         public static string CharacterSet => GenerateCharacterSet();
 
         /// <summary>
-        /// Overrides ToString() to return the Base100 character set.
+        /// 重写ToString返回Base100字符集
         /// </summary>
-        /// <returns>The Base100 character set string.</returns>
         public override string ToString() => CharacterSet;
 
-        #region Encoding Methods
-        /// <summary>
-        /// Encodes a byte array into a Base100 string.
-        /// </summary>
-        /// <param name="data">The byte array to encode.</param>
-        /// <returns>The Base100 encoded string.</returns>
+        #region 编码方法
         public static string Encode(byte[] data) => EncodeBytes(data);
 
-        /// <summary>
-        /// Encodes a text string into a Base100 string using the specified encoding.
-        /// </summary>
-        /// <param name="text">The text string to encode.</param>
-        /// <param name="encoding">The text encoding to use (default is UTF-8).</param>
-        /// <returns>The Base100 encoded string.</returns>
         public static string Encode(string text, StringEncoding encoding = StringEncoding.UTF8)
         {
             byte[] bytes = GetEncoding(encoding).GetBytes(text);
@@ -40,20 +25,9 @@ namespace QingYi.Core.Codec.Base
         }
         #endregion
 
-        #region Decoding Methods
-        /// <summary>
-        /// Decodes a Base100 string into a byte array.
-        /// </summary>
-        /// <param name="base100Text">The Base100 string to decode.</param>
-        /// <returns>The decoded byte array.</returns>
+        #region 解码方法
         public static byte[] Decode(string base100Text) => DecodeToBytes(base100Text);
 
-        /// <summary>
-        /// Decodes a Base100 string into a text string using the specified encoding.
-        /// </summary>
-        /// <param name="base100Text">The Base100 string to decode.</param>
-        /// <param name="encoding">The text encoding to use.</param>
-        /// <returns>The decoded text string.</returns>
         public static string Decode(string base100Text, StringEncoding encoding)
         {
             byte[] bytes = DecodeToBytes(base100Text);
@@ -61,7 +35,7 @@ namespace QingYi.Core.Codec.Base
         }
         #endregion
 
-        #region Core Encoding/Decoding Implementation
+        #region 核心编解码实现
         private static unsafe string EncodeBytes(byte[] data)
         {
             if (data == null) throw new ArgumentNullException(nameof(data));
@@ -79,8 +53,8 @@ namespace QingYi.Core.Codec.Base
                 for (int i = 0; i < data.Length; i++)
                 {
                     byte b = *src++;
-                    *dest++ = (char)0xD83C;        // High surrogate fixed value
-                    *dest++ = (char)(0xDF00 + b);  // Low surrogate calculation
+                    *dest++ = (char)0xD83C;        // 高位代理固定值
+                    *dest++ = (char)(0xDF00 + b);  // 低位代理计算
                 }
             }
 
@@ -92,7 +66,7 @@ namespace QingYi.Core.Codec.Base
             if (base100Text == null) throw new ArgumentNullException(nameof(base100Text));
             if (base100Text.Length == 0) return Array.Empty<byte>();
             if (base100Text.Length % 2 != 0)
-                throw new ArgumentException("Base100 text length must be even", nameof(base100Text));
+                throw new ArgumentException("Base100文本长度必须是偶数", nameof(base100Text));
 
             int byteCount = base100Text.Length / 2;
             byte[] result = new byte[byteCount];
@@ -109,7 +83,7 @@ namespace QingYi.Core.Codec.Base
                     char low = *src++;
 
                     if (high != 0xD83C || low < 0xDF00 || low > 0xDFFF)
-                        throw new FormatException($"Invalid Base100 character pair at position: {i * 2}");
+                        throw new FormatException($"无效的Base100字符对位置: {i * 2}");
 
                     *dest++ = (byte)(low - 0xDF00);
                 }
@@ -119,7 +93,7 @@ namespace QingYi.Core.Codec.Base
         }
         #endregion
 
-        #region Encoding Conversion Helpers
+        #region 编码转换辅助
         private static Encoding GetEncoding(StringEncoding encoding)
         {
             switch (encoding)
@@ -143,12 +117,12 @@ namespace QingYi.Core.Codec.Base
                     return Encoding.UTF7;
 #pragma warning restore SYSLIB0001, CS0618
                 default:
-                    throw new NotSupportedException($"Unsupported encoding: {encoding}");
+                    throw new NotSupportedException($"不支持的编码: {encoding}");
             }
         }
         #endregion
 
-        #region Character Set Generation
+        #region 字符集生成
         private static unsafe string GenerateCharacterSet()
         {
             const int charCount = 256 * 2;

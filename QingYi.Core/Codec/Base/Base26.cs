@@ -5,35 +5,28 @@ using System.Text;
 
 namespace QingYi.Core.Codec.Base
 {
-    /// <summary>
-    /// Provides Base26 encoding and decoding functionality.
-    /// </summary>
-    /// <remarks>
-    /// Base26 is an encoding scheme that represents binary data using the 26 letters of the English alphabet.
-    /// This implementation supports both uppercase and lowercase letters and optional minimum length padding.
-    /// </remarks>
     public class Base26
     {
         private readonly bool _useUpperCase;
         private readonly int _minLength;
         private readonly string _charSet;
-        private readonly byte[] _charMap = new byte[128]; // ASCII lookup table
+        private readonly byte[] _charMap = new byte[128]; // ASCII映射表
 
         /// <summary>
-        /// Initializes a new instance of the Base26 encoder/decoder.
+        /// 初始化Base26编解码器
         /// </summary>
-        /// <param name="useUpperCase">Whether to use uppercase letters (default: true).</param>
-        /// <param name="minLength">Minimum length of encoded output (padded with '=' if needed).</param>
+        /// <param name="useUpperCase">是否使用大写字母（默认true）</param>
+        /// <param name="minLength">编码最小长度（不足时填充'='）</param>
         public Base26(bool useUpperCase = true, int minLength = 0)
         {
             _useUpperCase = useUpperCase;
             _minLength = minLength;
             _charSet = _useUpperCase ? "ABCDEFGHIJKLMNOPQRSTUVWXYZ" : "abcdefghijklmnopqrstuvwxyz";
 
-            // Initialize character mapping table
+            // 初始化字符映射表
             for (int i = 0; i < _charMap.Length; i++)
             {
-                _charMap[i] = 0xFF; // 0xFF indicates invalid character
+                _charMap[i] = 0xFF; // 0xFF表示无效字符
             }
 
             for (byte idx = 0; idx < 26; idx++)
@@ -43,18 +36,14 @@ namespace QingYi.Core.Codec.Base
         }
 
         /// <summary>
-        /// Returns the character set used for encoding.
+        /// 返回当前字符集
         /// </summary>
-        /// <returns>The current character set string.</returns>
         public override string ToString() => _charSet;
 
-        #region Byte Array Encoding/Decoding
+        #region 字节数组编解码
         /// <summary>
-        /// Encodes a byte array into Base26 format.
+        /// 编码字节数组
         /// </summary>
-        /// <param name="data">The byte array to encode.</param>
-        /// <returns>The Base26 encoded string.</returns>
-        /// <exception cref="ArgumentNullException">Thrown when input is null.</exception>
         public string Encode(byte[] data)
         {
             if (data == null) throw new ArgumentNullException(nameof(data));
@@ -105,18 +94,14 @@ namespace QingYi.Core.Codec.Base
         }
 
         /// <summary>
-        /// Decodes a Base26 string back to a byte array.
+        /// 解码Base26字符串
         /// </summary>
-        /// <param name="base26">The Base26 string to decode.</param>
-        /// <returns>The decoded byte array.</returns>
-        /// <exception cref="ArgumentNullException">Thrown when input is null.</exception>
-        /// <exception cref="FormatException">Thrown when input contains invalid Base26 characters.</exception>
         public byte[] Decode(string base26)
         {
             if (base26 == null) throw new ArgumentNullException(nameof(base26));
             if (base26.Length == 0) return Array.Empty<byte>();
 
-            // Skip leading padding characters '='
+            // 跳过前导填充字符'='
             int startIndex = 0;
             while (startIndex < base26.Length && base26[startIndex] == '=')
                 startIndex++;
@@ -124,21 +109,21 @@ namespace QingYi.Core.Codec.Base
             if (startIndex == base26.Length)
                 return Array.Empty<byte>();
 
-            // Convert to digit sequence
+            // 转换为数字序列
             List<byte> digits = new List<byte>(base26.Length - startIndex);
             for (int i = startIndex; i < base26.Length; i++)
             {
                 char c = base26[i];
-                // Stop decoding if padding character encountered
+                // 遇到填充字符停止解码
                 if (c == '=') break;
 
                 if (c >= 128 || _charMap[c] == 0xFF)
-                    throw new FormatException($"Invalid Base26 character: '{c}'");
+                    throw new FormatException($"无效Base26字符: '{c}'");
 
                 digits.Add(_charMap[c]);
             }
 
-            // Big integer multiplication conversion
+            // 大整数乘法转换
             List<byte> result = new List<byte>(digits.Count * 2);
             foreach (byte digit in digits)
             {
@@ -162,20 +147,15 @@ namespace QingYi.Core.Codec.Base
         }
         #endregion
 
-        #region String Encoding/Decoding
+        #region 字符串编解码
         /// <summary>
-        /// Encodes a string into Base26 format using UTF-8 encoding.
+        /// 编码字符串（使用UTF8编码）
         /// </summary>
-        /// <param name="text">The string to encode.</param>
-        /// <returns>The Base26 encoded string.</returns>
         public string Encode(string text) => Encode(text, StringEncoding.UTF8);
 
         /// <summary>
-        /// Encodes a string into Base26 format using the specified text encoding.
+        /// 编码字符串（指定编码）
         /// </summary>
-        /// <param name="text">The string to encode.</param>
-        /// <param name="encoding">The text encoding to use.</param>
-        /// <returns>The Base26 encoded string.</returns>
         public string Encode(string text, StringEncoding encoding)
         {
             if (text == null) throw new ArgumentNullException(nameof(text));
@@ -183,18 +163,13 @@ namespace QingYi.Core.Codec.Base
         }
 
         /// <summary>
-        /// Decodes a Base26 string back to the original string using UTF-8 encoding.
+        /// 解码为字符串（使用UTF8编码）
         /// </summary>
-        /// <param name="base26">The Base26 string to decode.</param>
-        /// <returns>The decoded string.</returns>
         public string DecodeToString(string base26) => DecodeToString(base26, StringEncoding.UTF8);
 
         /// <summary>
-        /// Decodes a Base26 string back to the original string using the specified text encoding.
+        /// 解码为字符串（指定编码）
         /// </summary>
-        /// <param name="base26">The Base26 string to decode.</param>
-        /// <param name="encoding">The text encoding to use.</param>
-        /// <returns>The decoded string.</returns>
         public string DecodeToString(string base26, StringEncoding encoding)
         {
             if (base26 == null) throw new ArgumentNullException(nameof(base26));
@@ -203,7 +178,7 @@ namespace QingYi.Core.Codec.Base
         }
         #endregion
 
-        #region Private Helper Methods
+        #region 私有辅助方法
         private string BuildString(List<byte> digits)
         {
             StringBuilder sb = new StringBuilder(digits.Count);
@@ -212,7 +187,7 @@ namespace QingYi.Core.Codec.Base
                 sb.Append(_charSet[digit]);
             }
 
-            // Add leading padding '='
+            // 填充前导'='
             if (sb.Length < _minLength)
             {
                 sb.Insert(0, new string('=', _minLength - sb.Length));
@@ -239,12 +214,12 @@ namespace QingYi.Core.Codec.Base
                 case StringEncoding.Latin1:
                     return Encoding.Latin1.GetBytes(text);
 #endif
-#pragma warning disable SYSLIB0001, CS0618
                 case StringEncoding.UTF7:
+#pragma warning disable SYSLIB0001, CS0618
                     return Encoding.UTF7.GetBytes(text);
 #pragma warning restore SYSLIB0001, CS0618
                 default:
-                    throw new ArgumentOutOfRangeException(nameof(encoding), "Unsupported encoding format");
+                    throw new ArgumentOutOfRangeException(nameof(encoding), "不支持的编码格式");
             }
         }
 
@@ -266,12 +241,12 @@ namespace QingYi.Core.Codec.Base
                 case StringEncoding.Latin1:
                     return Encoding.Latin1.GetString(data);
 #endif
-#pragma warning disable SYSLIB0001, CS0618
                 case StringEncoding.UTF7:
+#pragma warning disable SYSLIB0001, CS0618
                     return Encoding.UTF7.GetString(data);
 #pragma warning restore SYSLIB0001, CS0618
                 default:
-                    throw new ArgumentOutOfRangeException(nameof(encoding), "Unsupported encoding format");
+                    throw new ArgumentOutOfRangeException(nameof(encoding), "不支持的编码格式");
             }
         }
         #endregion
