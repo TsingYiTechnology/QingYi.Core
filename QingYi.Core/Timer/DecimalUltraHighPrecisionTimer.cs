@@ -73,13 +73,13 @@ namespace QingYi.Core.Timer
             public const int CLOCK_REALTIME = 0;
 
             [DllImport("libc", SetLastError = true)]
-            public static extern int clock_gettime(int clk_id, timespec* tp);
+            public static extern int clock_gettime(int clk_id, TimeSpec* tp);
 
             [DllImport("libc", SetLastError = true)]
-            public static extern int clock_getres(int clk_id, timespec* tp);
+            public static extern int clock_getres(int clk_id, TimeSpec* tp);
 
             [StructLayout(LayoutKind.Sequential)]
-            public struct timespec
+            public struct TimeSpec
             {
                 public long tv_sec;  // seconds
                 public long tv_nsec; // nanoseconds
@@ -268,6 +268,7 @@ namespace QingYi.Core.Timer
                 long frequency = 0;
                 long counter = 0;
 
+#pragma warning disable CA1416 // 验证平台兼容性
                 if (WindowsNative.QueryPerformanceFrequency(&frequency) != 0 &&
                     WindowsNative.QueryPerformanceCounter(&counter) != 0)
                 {
@@ -278,6 +279,7 @@ namespace QingYi.Core.Timer
                     _picosecondsPerTick = OneTrillionDecimal / _frequencyDecimal;
                     return true;
                 }
+#pragma warning restore CA1416 // 验证平台兼容性
             }
             catch
             {
@@ -294,12 +296,13 @@ namespace QingYi.Core.Timer
 
             try
             {
-                UnixNative.timespec ts = default;
+                UnixNative.TimeSpec ts = default;
 
+#pragma warning disable CA1416 // 验证平台兼容性
                 if (UnixNative.clock_gettime(UnixNative.CLOCK_MONOTONIC_RAW, &ts) == 0)
                 {
                     // Get actual resolution
-                    UnixNative.timespec res = default;
+                    UnixNative.TimeSpec res = default;
                     if (UnixNative.clock_getres(UnixNative.CLOCK_MONOTONIC_RAW, &res) == 0)
                     {
                         // Use actual resolution for better accuracy
@@ -317,6 +320,7 @@ namespace QingYi.Core.Timer
                     _picosecondsPerTick = OneTrillionDecimal / _frequencyDecimal;
                     return true;
                 }
+#pragma warning restore CA1416 // 验证平台兼容性
             }
             catch
             {
@@ -333,12 +337,13 @@ namespace QingYi.Core.Timer
 
             try
             {
-                UnixNative.timespec ts = default;
+                UnixNative.TimeSpec ts = default;
 
+#pragma warning disable CA1416 // 验证平台兼容性
                 if (UnixNative.clock_gettime(UnixNative.CLOCK_MONOTONIC, &ts) == 0)
                 {
                     // Get actual resolution
-                    UnixNative.timespec res = default;
+                    UnixNative.TimeSpec res = default;
                     if (UnixNative.clock_getres(UnixNative.CLOCK_MONOTONIC, &res) == 0)
                     {
                         _frequency = (long)(1_000_000_000_000m / ((decimal)res.tv_nsec * 1000m + (decimal)res.tv_sec * OneTrillionDecimal));
@@ -354,6 +359,7 @@ namespace QingYi.Core.Timer
                     _picosecondsPerTick = OneTrillionDecimal / _frequencyDecimal;
                     return true;
                 }
+#pragma warning restore CA1416 // 验证平台兼容性
             }
             catch
             {
@@ -612,22 +618,28 @@ namespace QingYi.Core.Timer
         private long GetWindowsHighPrecisionTimestamp()
         {
             long counter = 0;
+#pragma warning disable CA1416 // 验证平台兼容性
             WindowsNative.QueryPerformanceCounter(&counter);
+#pragma warning restore CA1416 // 验证平台兼容性
             return counter;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private long GetUnixMonotonicRawTimestamp()
         {
-            UnixNative.timespec ts = default;
+            UnixNative.TimeSpec ts = default;
+#pragma warning disable CA1416 // 验证平台兼容性
             UnixNative.clock_gettime(UnixNative.CLOCK_MONOTONIC_RAW, &ts);
+#pragma warning restore CA1416 // 验证平台兼容性
 
             // Convert to ticks using high precision arithmetic
             if (_use128BitPrecision)
             {
                 // Use 128-bit arithmetic for better precision
+#pragma warning disable CA1416 // 验证平台兼容性
                 ulong secs = (ulong)ts.tv_sec;
                 ulong nsecs = (ulong)ts.tv_nsec;
+#pragma warning restore CA1416 // 验证平台兼容性
                 ulong freq = (ulong)_frequency;
 
                 // Calculate using 128-bit multiplication
@@ -638,7 +650,9 @@ namespace QingYi.Core.Timer
             else
             {
                 // Fallback to decimal arithmetic
+#pragma warning disable CA1416 // 验证平台兼容性
                 decimal nanoseconds = ts.tv_sec * OneBillionDecimal + ts.tv_nsec;
+#pragma warning restore CA1416 // 验证平台兼容性
                 return (long)(nanoseconds * _frequencyDecimal / OneBillionDecimal);
             }
         }
@@ -646,13 +660,17 @@ namespace QingYi.Core.Timer
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private long GetUnixMonotonicTimestamp()
         {
-            UnixNative.timespec ts = default;
+            UnixNative.TimeSpec ts = default;
+#pragma warning disable CA1416 // 验证平台兼容性
             UnixNative.clock_gettime(UnixNative.CLOCK_MONOTONIC, &ts);
+#pragma warning restore CA1416 // 验证平台兼容性
 
             if (_use128BitPrecision)
             {
+#pragma warning disable CA1416 // 验证平台兼容性
                 ulong secs = (ulong)ts.tv_sec;
                 ulong nsecs = (ulong)ts.tv_nsec;
+#pragma warning restore CA1416 // 验证平台兼容性
                 ulong freq = (ulong)_frequency;
 
                 UInt128 nanoseconds = (UInt128)secs * 1_000_000_000UL + (UInt128)nsecs;
@@ -661,7 +679,9 @@ namespace QingYi.Core.Timer
             }
             else
             {
+#pragma warning disable CA1416 // 验证平台兼容性
                 decimal nanoseconds = ts.tv_sec * OneBillionDecimal + ts.tv_nsec;
+#pragma warning restore CA1416 // 验证平台兼容性
                 return (long)(nanoseconds * _frequencyDecimal / OneBillionDecimal);
             }
         }
@@ -863,6 +883,9 @@ namespace QingYi.Core.Timer
             }
         }
 
+        /// <summary>
+        /// Releases all resources used by the timer.
+        /// </summary>
         ~DecimalUltraHighPrecisionTimer()
         {
             Dispose();
@@ -952,6 +975,11 @@ namespace QingYi.Core.Timer
         /// </summary>
         public int SampleCount { get; init; }
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="TimingStatistics"/> class with the specified measurements.
+        /// </summary>
+        /// <param name="measurements">An array of decimal timing measurements to analyze. Must contain at least one element.</param>
+        /// <exception cref="ArgumentException">Thrown when <paramref name="measurements"/> is null or empty.</exception>
         public TimingStatistics(decimal[] measurements)
         {
             if (measurements == null || measurements.Length == 0)
