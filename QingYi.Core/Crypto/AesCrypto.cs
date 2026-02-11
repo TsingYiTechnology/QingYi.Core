@@ -892,7 +892,9 @@ namespace QingYi.Core.Crypto
         private async Task ProcessNonGcmEncryptionAsync(Stream input, Stream output, byte[] iv,
     IProgress<long>? progress, CancellationToken ct)
         {
+#pragma warning disable CS0219 // 变量已被赋值，但从未使用过它的值
             const int bufferSize = 81920; // 80KB缓冲区
+#pragma warning restore CS0219 // 变量已被赋值，但从未使用过它的值
 
             // 使用一次性读取并处理，确保数据完整
             using var ms = new MemoryStream();
@@ -1356,14 +1358,66 @@ namespace QingYi.Core.Crypto
             }
         }
 
+        /// <summary>
+        /// Determines whether the specified cipher mode is supported on the current platform.
+        /// This method performs runtime capability checking for different AES encryption modes.
+        /// For GCM mode, it verifies that the underlying platform supports AES-GCM authenticated encryption.
+        /// For other modes (CBC, ECB, CFB), it verifies that the AES implementation supports the requested mode.
+        /// </summary>
+        /// <param name="mode">The cipher mode to check for support. Use values from the <see cref="ExtendedCipherMode"/> enumeration.</param>
+        /// <returns>
+        /// <c>true</c> if the specified cipher mode is supported on the current platform; otherwise, <c>false</c>.
+        /// Returns <c>false</c> for unsupported modes or when platform restrictions prevent the mode from being used.
+        /// </returns>
+        /// <remarks>
+        /// <para>
+        /// This method is particularly useful for checking GCM support, as AES-GCM is not available on all platforms.
+        /// For example, some older .NET Framework versions or certain platforms (like WebAssembly) may not support GCM.
+        /// </para>
+        /// <para>
+        /// The method uses defensive exception handling to determine support. If creating an instance
+        /// of the required cryptographic provider throws an exception, the mode is considered unsupported.
+        /// This approach ensures compatibility across different runtime environments.
+        /// </para>
+        /// <para>
+        /// <strong>Performance Note:</strong> This method creates temporary cryptographic objects
+        /// to test support. While generally lightweight, it's recommended to call this method once
+        /// and cache the result rather than calling it repeatedly in performance-critical code.
+        /// </para>
+        /// <example>
+        /// The following example demonstrates how to use this method to safely choose an encryption mode:
+        /// <code>
+        /// AesCrypto.ExtendedCipherMode preferredMode = AesCrypto.ExtendedCipherMode.GCM;
+        /// 
+        /// if (AesCrypto.IsModeSupported(preferredMode))
+        /// {
+        ///     // Use authenticated encryption with GCM
+        ///     using var aes = new AesCrypto(key, AesCrypto.ExtendedCipherMode.GCM, PaddingMode.None);
+        /// }
+        /// else
+        /// {
+        ///     // Fall back to CBC mode
+        ///     using var aes = new AesCrypto(key, AesCrypto.ExtendedCipherMode.CBC);
+        /// }
+        /// </code>
+        /// </example>
+        /// </remarks>
+        /// <seealso cref="ExtendedCipherMode"/>
+        /// <seealso cref="AesCrypto(byte[], ExtendedCipherMode, PaddingMode)"/>
+        /// <exception cref="System.Security.Cryptography.CryptographicException">
+        /// Thrown when a cryptographic operation fails during the capability check.
+        /// However, this method catches and handles such exceptions internally.
+        /// </exception>
         public static bool IsModeSupported(ExtendedCipherMode mode)
         {
             if (mode == ExtendedCipherMode.GCM)
             {
-                // 检查 GCM 支持
+                // Check GCM support
                 try
                 {
+#pragma warning disable SYSLIB0053 // Type or member is obsolete
                     using var aesGcm = new AesGcm(new byte[16]);
+#pragma warning restore SYSLIB0053 // Type or member is obsolete
                     return true;
                 }
                 catch
