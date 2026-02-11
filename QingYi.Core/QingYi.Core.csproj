@@ -7,8 +7,8 @@
 		<Version>6.0.0-internalversion.4</Version>
 		<Authors>QingYi-Studio</Authors>
 		<Copyright>AGPL-3.0</Copyright>
-		<PackageProjectUrl>https://github.com/QingYi-Studio/QingYi.Core</PackageProjectUrl>
-		<RepositoryUrl>https://github.com/QingYi-Studio/QingYi.Core</RepositoryUrl>
+		<PackageProjectUrl>https://github.com/TsingYiStudio/QingYi.Core</PackageProjectUrl>
+		<RepositoryUrl>https://github.com/TsingYiStudio/QingYi.Core</RepositoryUrl>
 		<RepositoryType>git</RepositoryType>
 		<Description>A tool library project in use, based on native C#, does not require any third-party libraries.
 This project features many practical functions, such as support for multiple Base encoding types, common operations for files/folders, high-precision timers, encryption, etc.
