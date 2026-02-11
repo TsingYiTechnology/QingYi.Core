@@ -238,7 +238,30 @@ namespace QingYi.Core.Crypto
             des.IV = iv;
 
             using var decryptor = des.CreateDecryptor();
-            return decryptor.TransformFinalBlock(ciphertext, 0, ciphertext.Length);
+            var result = decryptor.TransformFinalBlock(ciphertext, 0, ciphertext.Length);
+
+            // 处理 Zeros 填充：移除尾部的零字节
+            if (Padding == PaddingMode.Zeros && result.Length > 0)
+            {
+                int endIndex = result.Length - 1;
+                while (endIndex >= 0 && result[endIndex] == 0)
+                {
+                    endIndex--;
+                }
+
+                if (endIndex >= 0)
+                {
+                    var trimmedResult = new byte[endIndex + 1];
+                    Buffer.BlockCopy(result, 0, trimmedResult, 0, trimmedResult.Length);
+                    return trimmedResult;
+                }
+                else
+                {
+                    return Array.Empty<byte>();
+                }
+            }
+
+            return result;
         }
 
         /// <summary>
@@ -558,35 +581,62 @@ namespace QingYi.Core.Crypto
         /// <param name="progress">An optional progress reporter.</param>
         /// <param name="ct">A cancellation token to cancel the operation.</param>
         /// <returns>A task representing the asynchronous operation.</returns>
-        private static async Task ProcessStreamAsync(Stream input, Stream output,
-            ICryptoTransform transform, IProgress<long>? progress, CancellationToken ct)
+        private static async Task ProcessStreamAsync(Stream input, Stream output, ICryptoTransform transform, IProgress<long>? progress, CancellationToken ct)
         {
             const int BUFFER_SIZE = 81920; // 80KB buffer
 
-            byte[] buffer = ArrayPool<byte>.Shared.Rent(BUFFER_SIZE);
-            byte[] transformBuffer = ArrayPool<byte>.Shared.Rent(BUFFER_SIZE + DES_BLOCK_SIZE);
+            // 确保缓冲区大小是块大小的倍数
+            int alignedBufferSize = BUFFER_SIZE;
+            if (transform.InputBlockSize > 1)
+            {
+                alignedBufferSize = (BUFFER_SIZE / transform.InputBlockSize) * transform.InputBlockSize;
+                if (alignedBufferSize == 0)
+                    alignedBufferSize = transform.InputBlockSize;
+            }
+
+            byte[] buffer = ArrayPool<byte>.Shared.Rent(alignedBufferSize);
+            byte[] transformBuffer = ArrayPool<byte>.Shared.Rent(alignedBufferSize);
 
             try
             {
                 long totalBytesProcessed = 0;
                 int bytesRead;
 
-                while ((bytesRead = await input.ReadAsync(buffer.AsMemory(0, BUFFER_SIZE), ct)) > 0)
+                while ((bytesRead = await input.ReadAsync(buffer.AsMemory(0, alignedBufferSize), ct)) > 0)
                 {
                     ct.ThrowIfCancellationRequested();
 
-                    // Process data block
+                    // 确保读取的字节数是块大小的倍数（对于非流式模式）
+                    if (transform.InputBlockSize > 1 && bytesRead % transform.InputBlockSize != 0)
+                    {
+                        // 对于需要块对齐的模式，填充最后一个块
+                        int remaining = transform.InputBlockSize - (bytesRead % transform.InputBlockSize);
+                        if (remaining < transform.InputBlockSize)
+                        {
+                            // 填充零字节
+                            for (int i = 0; i < remaining; i++)
+                            {
+                                buffer[bytesRead + i] = 0;
+                            }
+                            bytesRead += remaining;
+                        }
+                    }
+
+                    // 处理数据块
                     int bytesTransformed = transform.TransformBlock(
                         buffer, 0, bytesRead, transformBuffer, 0);
 
-                    // Write to output stream
-                    await output.WriteAsync(transformBuffer.AsMemory(0, bytesTransformed), ct);
+                    // 写入输出流
+                    if (bytesTransformed > 0)
+                    {
+                        await output.WriteAsync(transformBuffer.AsMemory(0, bytesTransformed), ct);
+                    }
 
                     totalBytesProcessed += bytesRead;
                     progress?.Report(totalBytesProcessed);
                 }
 
-                // Process final block
+                // 处理最终块
                 byte[] finalBlock = transform.TransformFinalBlock(buffer, 0, 0);
                 if (finalBlock.Length > 0)
                 {
@@ -789,7 +839,7 @@ namespace QingYi.Core.Crypto
 
                 ClearKey();
                 _disposed = true;
-                GC.SuppressFinalize(this);
+                GC.SuppressFinalize(this); // 重新启用这行
             }
         }
 
@@ -937,7 +987,21 @@ namespace QingYi.Core.Crypto
         /// </summary>
         ~DesCrypto()
         {
-            Dispose();
+            // 不在 Finalizer 中调用 Dispose()，而是直接清理资源
+            if (!_disposed && _key != null)
+            {
+                // 安全地清理密钥，避免使用 lock
+                try
+                {
+                    CryptographicOperations.ZeroMemory(_key);
+                    _key = null;
+                    _disposed = true;
+                }
+                catch
+                {
+                    // 吞掉所有异常，Finalizer 中不能抛出异常
+                }
+            }
         }
 
         #endregion
