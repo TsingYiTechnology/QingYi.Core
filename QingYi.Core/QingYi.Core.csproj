@@ -4,9 +4,9 @@
 		<TargetFrameworks>net8.0;net9.0;net10.0;net8.0-windows;net9.0-windows;net10.0-windows;net9.0-browser;net10.0-browser</TargetFrameworks>
 		<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
 		<Title>QingYi.Core</Title>
-		<Version>6.0.0-alpha.1</Version>
+		<Version>6.0.0-alpha.2</Version>
 		<Authors>QingYi-Studio</Authors>
-		<Copyright>AGPL-3.0</Copyright>
+		<Copyright>Closed Source</Copyright>
 		<PackageProjectUrl>https://github.com/TsingYiStudio/QingYi.Core</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/TsingYiStudio/QingYi.Core</RepositoryUrl>
 		<RepositoryType>git</RepositoryType>
